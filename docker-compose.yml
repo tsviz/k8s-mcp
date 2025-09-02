@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  k8s-mcp-server:
+    build:
+      context: .
+      dockerfile: Dockerfile.multistage
+    container_name: k8s-mcp-server
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - DEBUG=0
+    volumes:
+      # Mount kubeconfig for Kubernetes access
+      - ~/.kube:/home/mcp/.kube:ro
+      # Optional: Mount additional config files
+      - ./config:/app/config:ro
+    networks:
+      - mcp-network
+    # For stdio-based MCP, we don't expose ports
+    # If using HTTP transport, uncomment the ports section
+    # ports:
+    #   - "3000:3000"
+    
+  # Optional: Add a sidecar container for monitoring
+  k8s-mcp-monitor:
+    image: prom/node-exporter:latest
+    container_name: k8s-mcp-monitor
+    restart: unless-stopped
+    ports:
+      - "9100:9100"
+    networks:
+      - mcp-network
+    profiles:
+      - monitoring
+
+networks:
+  mcp-network:
+    driver: bridge
+
+# Optional volumes for persistent data
+volumes:
+  mcp-data:
+    driver: local

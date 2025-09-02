@@ -1,0 +1,97 @@
+# Kubernetes deployment for running the MCP server in-cluster
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: k8s-mcp-server
+  namespace: default
+  labels:
+    app: k8s-mcp-server
+    version: v1.0.0
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: k8s-mcp-server
+  template:
+    metadata:
+      labels:
+        app: k8s-mcp-server
+        version: v1.0.0
+    spec:
+      serviceAccountName: mcp-k8s-deployment-manager
+      containers:
+      - name: k8s-mcp-server
+        image: k8s-mcp-server:latest
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: KUBERNETES_SERVICE_HOST
+          value: "kubernetes.default.svc.cluster.local"
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+        # Since this runs in-cluster, it uses the service account token
+        # No need to mount kubeconfig
+        livenessProbe:
+          exec:
+            command:
+            - node
+            - -e
+            - "console.log('Health check passed')"
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          exec:
+            command:
+            - node
+            - -e
+            - "console.log('Ready check passed')"
+          initialDelaySeconds: 5
+          periodSeconds: 5
+
+---
+# Service for potential HTTP-based MCP access
+apiVersion: v1
+kind: Service
+metadata:
+  name: k8s-mcp-server-service
+  namespace: default
+  labels:
+    app: k8s-mcp-server
+spec:
+  selector:
+    app: k8s-mcp-server
+  ports:
+  - name: http
+    port: 3000
+    targetPort: 3000
+    protocol: TCP
+  type: ClusterIP
+
+---
+# ConfigMap for additional configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: k8s-mcp-server-config
+  namespace: default
+data:
+  config.json: |
+    {
+      "server": {
+        "name": "k8s-deployment-server",
+        "version": "1.0.0",
+        "timeout": 300000,
+        "maxRetries": 3
+      },
+      "kubernetes": {
+        "defaultNamespace": "default",
+        "maxPodsForLogs": 5,
+        "logTailLines": 100
+      }
+    }

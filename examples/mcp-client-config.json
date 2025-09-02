@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "k8s-deployment-server": {
+      "command": "node",
+      "args": ["dist/index.js"],
+      "cwd": "/path/to/your/k8s-deployment-mcp-server",
+      "env": {
+        "NODE_ENV": "production",
+        "KUBECONFIG": "/path/to/your/kubeconfig"
+      }
+    }
+  }
+}
