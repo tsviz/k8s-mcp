@@ -1,7 +1,7 @@
 # Kubernetes Deployment MCP Server
 
 ![Build Status](https://github.com/tsviz/k8s-mcp/workflows/🚀%20Release%20Docker%20Images/badge.svg)
-![CodeQL](https://github.com/tsviz/k8s-mcp/workflows/🔒%20CodeQL%20Security%20Scan/badge.svg)
+![Dev Build](https://github.com/tsviz/k8s-mcp/workflows/�%20Development%20Build/badge.svg)
 ![License](https://img.shields.io/github/license/tsviz/k8s-mcp)
 ![Version](https://img.shields.io/github/v/release/tsviz/k8s-mcp)
 

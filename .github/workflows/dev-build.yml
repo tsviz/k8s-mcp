@@ -3,8 +3,16 @@ name: 🔧 Development Build
 on:
   push:
     branches: [ develop, feature/* ]
+    paths-ignore:
+      - 'README.md'
+      - '*.md'
+      - 'docs/**'
   pull_request:
     branches: [ develop ]
+    paths-ignore:
+      - 'README.md'
+      - '*.md'
+      - 'docs/**'
 
 env:
   REGISTRY: ghcr.io
