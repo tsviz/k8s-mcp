@@ -337,19 +337,6 @@ export class KubernetesService {
         targetRevision = parseInt(nonCurrentRS?.metadata?.annotations?.['deployment.kubernetes.io/revision'] || '1');
       }
 
-      // Perform rollback using kubectl rollout undo equivalent
-      const rollbackPatch = {
-        spec: {
-          template: {
-            metadata: {
-              annotations: {
-                'deployment.kubernetes.io/revision': targetRevision.toString()
-              }
-            }
-          }
-        }
-      };
-
       // Find the target replica set and get its template
       const targetRS = replicaSets.find(rs => {
         const rsRevision = parseInt(rs.metadata?.annotations?.['deployment.kubernetes.io/revision'] || '0');
