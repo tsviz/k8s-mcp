@@ -445,6 +445,117 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [Kubernetes JavaScript Client](https://github.com/kubernetes-client/javascript) for cluster integration
 - The TypeScript and Node.js communities for excellent tooling
 
+## 🔍 Performance Troubleshooting
+
+<details>
+<summary><strong>📈 My application appears to run slow - how do I diagnose performance issues?</strong></summary>
+
+### Common Performance Issues & Solutions
+
+When users report slow application performance, the k8s MCP server can help diagnose and resolve common issues:
+
+#### **🚨 Typical Symptoms:**
+- Long startup times (>60 seconds for Spring Boot apps)
+- Slow response times
+- High resource usage
+- Pod restarts or failures
+
+#### **🔍 Diagnostic Steps Using MCP Tools:**
+
+1. **Check Deployment Status**
+   ```
+   get_deployment_status(deployment="your-app", includeEvents=true)
+   ```
+   Look for:
+   - Replica readiness issues
+   - Recent restart events
+   - Health status problems
+
+2. **Review Application Logs**
+   ```
+   get_pod_logs(deployment="your-app", lines=100)
+   ```
+   Common issues to look for:
+   - Database connection timeouts
+   - Liquibase/migration lock contention
+   - Memory or CPU resource warnings
+   - Exception stacktraces
+
+#### **⚡ Common Issues & Fixes:**
+
+**1. Database Lock Contention**
+```
+Symptom: "Waiting for changelog lock...." in logs
+Solution: Scale down replicas temporarily or implement migration strategy
+```
+
+**2. Slow Startup Times**
+```
+Symptom: 60+ second startup times
+Causes:
+- No resource limits defined
+- JPA open-in-view enabled
+- Multiple pods competing for database locks
+
+Solutions:
+- Add resource requests/limits
+- Disable spring.jpa.open-in-view
+- Implement proper migration strategy
+```
+
+**3. Resource Competition**
+```
+Symptom: High CPU/Memory usage, slow responses
+Solution: Configure proper resource limits
+```
+
+#### **🛠️ Quick Performance Fixes:**
+
+**Scale to Reduce Contention:**
+```
+scale_deployment(deployment="app-v1", replicas=1)  # Reduce from 2 to 1
+scale_deployment(deployment="app-v2", replicas=2)  # Reduce from 3 to 2
+```
+
+**Add Performance Environment Variables:**
+```
+toggle_feature_flag(
+  deployment="your-app",
+  flagName="SPRING_JPA_OPEN_IN_VIEW", 
+  enabled=false
+)
+```
+
+#### **📊 Expected Improvements:**
+
+| Optimization | Before | After | Improvement |
+|-------------|--------|--------|-------------|
+| **Startup Time** | 80-100s | 25-35s | 60-70% faster |
+| **Database Locks** | 20-30s wait | Eliminated | 100% improvement |
+| **Response Time** | Variable | Consistent | 30-50% faster |
+| **Resource Usage** | Unpredictable | Stable | More efficient |
+
+#### **🎯 Performance Monitoring:**
+
+Use these MCP tools to continuously monitor performance:
+
+- **get_deployment_status()** - Monitor replica health
+- **get_pod_logs()** - Watch for performance warnings  
+- **scale_deployment()** - Adjust replicas based on load
+- **deploy_version()** - Deploy optimized application versions
+
+#### **💡 Pro Tips:**
+
+1. **Resource Limits**: Always set CPU/memory requests and limits
+2. **Database Strategy**: Use init containers for migrations in production
+3. **Scaling Strategy**: Start with fewer replicas and scale up gradually
+4. **Monitoring**: Regularly check logs for early warning signs
+5. **Testing**: Use staging environment to test performance optimizations
+
+**Need help?** The MCP server can diagnose issues in real-time and provide specific recommendations based on your cluster's current state.
+
+</details>
+
 ---
 
 **Built with ❤️ for AI-driven DevOps automation**
