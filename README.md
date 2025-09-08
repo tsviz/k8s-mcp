@@ -91,6 +91,8 @@ AI: "I'll deploy with rolling update strategy and monitor the rollout..."
 - **Intelligent rollback** - Automatic revert if issues detected
 - **Production safe** - Built-in safeguards and validation
 
+> ⚠️ **Production Note**: For production deployments, use this capability within your established CI/CD pipeline or during authorized emergency responses only. See [Security Disclaimers](#️-important-security--production-disclaimers) for guidelines.
+
 </details>
 
 <details>
@@ -185,6 +187,8 @@ AI: "I'll immediately rollback to the previous stable version..."
 4. **Incident reporting** - Document issue and resolution
 5. **Prevention planning** - Identify improvements for future deployments
 
+> 🚨 **Emergency Use Only**: Rollback capabilities should only be used during declared production incidents with proper authorization. Follow your organization's incident response procedures.
+
 </details>
 
 <details>
@@ -217,6 +221,114 @@ AI: "Checking all deployments... Found 2 issues that need attention..."
 - **Configuration drift** - Identify unauthorized changes
 
 </details>
+
+## ⚠️ Important Security & Production Disclaimers
+
+> **🚨 CRITICAL**: This MCP server is designed for **development, testing, and emergency scenarios** - NOT as a primary deployment tool for production environments.
+
+### 🛡️ **Production Deployment Guidelines**
+
+**✅ RECOMMENDED Usage:**
+- **Development environments** - Testing and debugging applications
+- **Staging/QA clusters** - Pre-production validation and troubleshooting  
+- **Emergency response** - Critical production incidents requiring immediate intervention
+- **Monitoring & observability** - Health checks and status monitoring
+- **Learning & experimentation** - Understanding Kubernetes behavior
+
+**❌ NOT RECOMMENDED for:**
+- **Primary production deployments** - Use established CI/CD pipelines instead
+- **Automated production changes** - Requires human oversight and approval
+- **Unsupervised operations** - AI should not make autonomous production changes
+- **Bypassing approval processes** - Always follow your organization's change management
+
+### 🔐 **Security Best Practices**
+
+#### **Principle of Least Privilege**
+```yaml
+# Example: Restricted RBAC for development use
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: development
+rules:
+- apiGroups: ["apps"]
+  resources: ["deployments"]
+  verbs: ["get", "list", "watch"]  # Read-only in production
+- apiGroups: [""]
+  resources: ["pods", "events"]
+  verbs: ["get", "list"]  # No write permissions
+```
+
+#### **Environment Separation**
+- **Production clusters**: Read-only access or emergency-only permissions
+- **Development clusters**: Full access for experimentation
+- **Staging clusters**: Limited write access for testing
+- **Namespace isolation**: Restrict access to specific namespaces
+
+#### **Audit & Governance**
+- **Audit logging**: Enable Kubernetes audit logs for all MCP operations
+- **Change tracking**: Document all changes made through the MCP server
+- **Approval workflows**: Require manual approval for production changes
+- **Incident response**: Use only during declared incidents with proper authorization
+
+### 🏗️ **DevOps Integration Guidelines**
+
+#### **CI/CD Pipeline Integration**
+```yaml
+# Preferred: Use MCP server within CI/CD pipeline context
+- name: "Deploy via CI/CD"
+  run: |
+    # Traditional CI/CD deployment
+    kubectl apply -f manifests/
+    # Use MCP server for post-deployment validation
+    mcp-k8s-server get_deployment_status --deployment=myapp
+```
+
+#### **Proper Deployment Flow**
+1. **Code Review** → **CI Pipeline** → **Automated Testing**
+2. **Security Scanning** → **Build Artifacts** → **Staging Deployment**  
+3. **QA Validation** → **Approval Process** → **Production Deployment**
+4. **MCP Monitoring** → **Health Validation** → **Success Confirmation**
+
+#### **Emergency Response Protocol**
+```
+ONLY use deployment/rollback tools in MCP server when:
+✅ Declared production incident in progress
+✅ Authorized personnel involved
+✅ Standard CI/CD pipeline unavailable/too slow
+✅ Proper incident documentation in place
+✅ Post-incident review planned
+```
+
+### 📚 **Recommended Architecture**
+
+```
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
+│   Development   │    │     Staging      │    │   Production    │
+│    Cluster      │    │     Cluster      │    │    Cluster      │
+├─────────────────┤    ├──────────────────┤    ├─────────────────┤
+│ Full MCP Access │    │ Limited MCP      │    │ Read-Only MCP   │
+│ - All tools     │    │ - No prod deploy │    │ - Monitoring    │
+│ - Unrestricted  │    │ - Scale testing  │    │ - Emergency     │
+│ - Learning      │    │ - Validation     │    │ - Audit only    │
+└─────────────────┘    └──────────────────┘    └─────────────────┘
+```
+
+### 🎯 **Summary**
+
+The k8s MCP server is a **powerful diagnostic and emergency response tool** that enhances your DevOps capabilities. However, it should **complement**, not **replace**, your established CI/CD pipelines and change management processes.
+
+**Think of it as:**
+- 🔧 **A sophisticated wrench** - Great for specific tasks
+- 🚨 **An emergency toolkit** - Essential when things go wrong  
+- 👁️ **An observability lens** - Perfect for understanding system state
+
+**NOT as:**
+- 🏭 **A production assembly line** - That's what CI/CD is for
+- 🤖 **An autonomous deployment system** - Human oversight is essential
+- 🔓 **A way to bypass security** - Always follow the principle of least privilege
+
+**Remember**: With great power comes great responsibility. Use wisely! 🦸‍♂️
 
 ## 📋 Prerequisites
 
