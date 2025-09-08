@@ -8,12 +8,6 @@ on:
       - 'README.md'
       - '*.md'
       - 'docs/**'
-  pull_request:
-    branches: [ main ]
-    paths-ignore:
-      - 'README.md'
-      - '*.md'
-      - 'docs/**'
   workflow_dispatch:
     inputs:
       tag:
@@ -88,14 +82,14 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            # Latest tag for main branch pushes
-            type=ref,event=branch,enable={{is_default_branch}}
-            # Version tags from git tags
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
-            # SHA tags only for non-version pushes to main
-            type=sha,prefix=main-,enable={{is_default_branch}}
+            # For version tags: create version tags and latest
+            type=semver,pattern={{version}},enable=${{ startsWith(github.ref, 'refs/tags/v') }}
+            type=semver,pattern={{major}}.{{minor}},enable=${{ startsWith(github.ref, 'refs/tags/v') }}
+            type=semver,pattern={{major}},enable=${{ startsWith(github.ref, 'refs/tags/v') }}
+            type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/v') }}
+            # For main branch: create development tags
+            type=ref,event=branch,enable=${{ github.ref == 'refs/heads/main' && !startsWith(github.ref, 'refs/tags/') }}
+            type=sha,prefix=main-,enable=${{ github.ref == 'refs/heads/main' && !startsWith(github.ref, 'refs/tags/') }}
             # Custom tag from workflow_dispatch
             type=raw,value=${{ github.event.inputs.tag }},enable=${{ github.event.inputs.tag != '' }}
           labels: |
@@ -114,6 +108,8 @@ jobs:
           platforms: linux/amd64,linux/arm64
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          provenance: false
+          sbom: false
 
   release:
     name: 🎉 Create Release
