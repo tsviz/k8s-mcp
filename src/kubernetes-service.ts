@@ -508,13 +508,31 @@ export class KubernetesService {
     const { lines = 100, container, previous = false, follow = false } = options;
     
     try {
-      // Get pods for the deployment
-      const podsResponse = await this.coreApi.listNamespacedPod(namespace, undefined, undefined, undefined, undefined, `app=${deploymentName}`);
+      // First, get the deployment to find its selector
+      const deploymentResponse = await this.k8sApi.readNamespacedDeployment(deploymentName, namespace);
+      const deployment = deploymentResponse.body;
+      
+      if (!deployment.spec?.selector?.matchLabels) {
+        throw new Error(`Deployment ${deploymentName} has no selector labels`);
+      }
+
+      // Convert matchLabels to label selector string
+      const labelSelector = Object.entries(deployment.spec.selector.matchLabels)
+        .map(([key, value]) => `${key}=${value}`)
+        .join(',');
+
+      // Get pods using the deployment's selector
+      const podsResponse = await this.coreApi.listNamespacedPod(
+        namespace, 
+        undefined, // pretty
+        undefined, // allowWatchBookmarks
+        undefined, // _continue
+        undefined, // fieldSelector
+        labelSelector // labelSelector
+      );
+      
       const pods = podsResponse.body.items.filter(pod => 
-        pod.metadata?.ownerReferences?.some(ref => 
-          ref.kind === 'ReplicaSet' && 
-          ref.name?.startsWith(deploymentName)
-        )
+        pod.status?.phase === 'Running' || pod.status?.phase === 'Pending'
       );
 
       if (pods.length === 0) {

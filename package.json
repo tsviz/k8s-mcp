@@ -9,14 +9,25 @@
     "dev": "tsc --watch",
     "start": "node dist/index.js",
     "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
     "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix",
     "clean": "rm -rf dist",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm test && npm run lint",
+    "preversion": "npm run lint",
+    "version": "npm run lint:fix && git add -A src",
+    "postversion": "git push && git push --tags",
     "docker:build": "docker build -t k8s-mcp-server .",
     "docker:build-multi": "docker build -f Dockerfile.multistage -t k8s-mcp-server:latest .",
     "docker:run": "docker run --rm -v ~/.kube:/home/mcp/.kube:ro k8s-mcp-server:latest",
     "docker:compose": "docker-compose up -d",
     "docker:compose-dev": "docker-compose -f docker-compose.yml up --build",
-    "docker:compose-down": "docker-compose down"
+    "docker:compose-down": "docker-compose down",
+    "release": "npm version patch && npm run docker:build-multi",
+    "release:minor": "npm version minor && npm run docker:build-multi",
+    "release:major": "npm version major && npm run docker:build-multi"
   },
   "keywords": [
     "mcp",
@@ -27,7 +38,7 @@
     "devops",
     "model-context-protocol"
   ],
-  "author": "Your Name",
+  "author": "tsviz",
   "license": "MIT",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.17.4",
@@ -49,10 +60,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-username/k8s-deployment-mcp-server.git"
+    "url": "https://github.com/tsviz/k8s-mcp.git"
   },
   "bugs": {
-    "url": "https://github.com/your-username/k8s-deployment-mcp-server/issues"
+    "url": "https://github.com/tsviz/k8s-mcp/issues"
   },
-  "homepage": "https://github.com/your-username/k8s-deployment-mcp-server#readme"
+  "homepage": "https://github.com/tsviz/k8s-mcp#readme"
 }

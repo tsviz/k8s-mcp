@@ -1,5 +1,10 @@
 # Kubernetes Deployment MCP Server
 
+![Build Status](https://github.com/tsviz/k8s-mcp/workflows/🚀%20Release%20Docker%20Images/badge.svg)
+![CodeQL](https://github.com/tsviz/k8s-mcp/workflows/🔒%20CodeQL%20Security%20Scan/badge.svg)
+![License](https://img.shields.io/github/license/tsviz/k8s-mcp)
+![Version](https://img.shields.io/github/v/release/tsviz/k8s-mcp)
+
 A Model Context Protocol (MCP) server that provides AI-driven automation tools for managing Kubernetes deployments. This server exposes 6 powerful tools for deployment lifecycle management, allowing LLMs to interact with Kubernetes clusters in a secure and structured way.
 
 ## 🚀 Features
@@ -20,6 +25,8 @@ A Model Context Protocol (MCP) server that provides AI-driven automation tools f
 - **Comprehensive Monitoring**: Detailed status reporting with health checks, events, and metrics  
 - **Safe Operations**: Built-in timeouts, error handling, and rollback capabilities
 - **Production Ready**: Supports multiple deployment strategies and wait-for-completion patterns
+- **🐳 Multi-Architecture**: Available for `linux/amd64` and `linux/arm64`
+- **🔒 Security First**: Regular vulnerability scanning and automated dependency updates
 
 ## 📋 Prerequisites
 
@@ -29,6 +36,26 @@ A Model Context Protocol (MCP) server that provides AI-driven automation tools f
 - Basic understanding of Kubernetes deployments and the MCP protocol
 
 ## 🛠 Installation
+
+### Using Docker (Recommended)
+
+```json
+{
+  "servers": {
+    "k8s-deployment-server": {
+      "command": "docker",
+      "args": [
+        "run", "-i", "--rm",
+        "-v", "/path/to/.kube:/home/mcp/.kube:ro",
+        "ghcr.io/tsviz/k8s-mcp:latest"
+      ],
+      "type": "stdio"
+    }
+  }
+}
+```
+
+### From Source
 
 ### Option 1: Local Development
 
