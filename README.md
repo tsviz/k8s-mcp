@@ -341,6 +341,7 @@ The k8s MCP server is a **powerful diagnostic and emergency response tool** that
 
 ### Using Docker (Recommended)
 
+**Latest stable release:**
 ```json
 {
   "servers": {
@@ -356,6 +357,27 @@ The k8s MCP server is a **powerful diagnostic and emergency response tool** that
   }
 }
 ```
+
+**Specific version (recommended for production):**
+```json
+{
+  "servers": {
+    "k8s-deployment-server": {
+      "command": "docker",
+      "args": [
+        "run", "-i", "--rm",
+        "-v", "/path/to/.kube:/home/mcp/.kube:ro",
+        "ghcr.io/tsviz/k8s-mcp:v1.0.0"
+      ],
+      "type": "stdio"
+    }
+  }
+}
+```
+
+**Multi-architecture support:**
+- `linux/amd64` - Intel/AMD 64-bit
+- `linux/arm64` - Apple Silicon (M1/M2) and ARM64 servers
 
 ### From Source
 
