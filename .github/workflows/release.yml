@@ -88,14 +88,15 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            # set latest tag for main branch
-            type=ref,event=branch
-            type=ref,event=pr
+            # Latest tag for main branch pushes
+            type=ref,event=branch,enable={{is_default_branch}}
+            # Version tags from git tags
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
-            type=sha,prefix={{branch}}-
-            # custom tag from workflow_dispatch
+            # SHA tags only for non-version pushes to main
+            type=sha,prefix=main-,enable={{is_default_branch}}
+            # Custom tag from workflow_dispatch
             type=raw,value=${{ github.event.inputs.tag }},enable=${{ github.event.inputs.tag != '' }}
           labels: |
             org.opencontainers.image.title=Kubernetes MCP Server
