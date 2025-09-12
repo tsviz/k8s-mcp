@@ -7,14 +7,17 @@ import { KubernetesService } from "./kubernetes-service.js";
  * Kubernetes Deployment MCP Server
  * 
  * This server provides AI-driven automation tools for managing Kubernetes deployments.
- * It exposes 6 core tools for deployment lifecycle management:
+ * It exposes 9 core tools for deployment lifecycle management:
  * 
- * 1. get_deployment_status - Check deployment health and status
- * 2. scale_deployment - Horizontally scale deployments
- * 3. toggle_feature_flag - Enable/disable feature flags
- * 4. rollback_deployment - Rollback to previous deployment version
- * 5. deploy_version - Deploy a specific version
- * 6. get_pod_logs - Retrieve pod logs for debugging
+ * 1. get_cluster_info - Get cluster connection and basic information
+ * 2. list_namespaces - List all namespaces with deployment counts
+ * 3. list_deployments - List all deployments (optionally filtered by namespace)
+ * 4. get_deployment_status - Check deployment health and status
+ * 5. scale_deployment - Horizontally scale deployments
+ * 6. toggle_feature_flag - Enable/disable feature flags
+ * 7. rollback_deployment - Rollback to previous deployment version
+ * 8. deploy_version - Deploy a specific version
+ * 9. get_pod_logs - Retrieve pod logs for debugging
  */
 
 async function main() {
@@ -28,7 +31,146 @@ async function main() {
   const k8sService = new KubernetesService();
   await k8sService.initialize();
 
-  // Tool 1: Get Deployment Status
+  // Tool 1: Get Cluster Info
+  server.registerTool(
+    "get_cluster_info",
+    {
+      title: "Get Cluster Info",
+      description: "Retrieves cluster connection information, version, and basic statistics",
+      inputSchema: {}
+    },
+    async () => {
+      try {
+        const clusterInfo = await k8sService.getClusterInfo();
+        
+        return {
+          content: [{
+            type: "text",
+            text: `🔗 **Kubernetes Cluster Information**
+
+**Connection Details:**
+- **Cluster Name**: ${clusterInfo.clusterName}
+- **Server URL**: ${clusterInfo.serverUrl}
+- **Current Context**: ${clusterInfo.currentContext}
+- **User**: ${clusterInfo.user}
+
+**Cluster Statistics:**
+- **Kubernetes Version**: ${clusterInfo.kubernetesVersion}
+- **Node Count**: ${clusterInfo.nodeCount}
+- **Namespace Count**: ${clusterInfo.namespaceCount}
+
+✅ **Status**: Connected and operational`
+          }]
+        };
+      } catch (error) {
+        return {
+          content: [{
+            type: "text",
+            text: `❌ Error getting cluster information: ${error instanceof Error ? error.message : 'Unknown error'}`
+          }],
+          isError: true
+        };
+      }
+    }
+  );
+
+  // Tool 2: List Namespaces
+  server.registerTool(
+    "list_namespaces",
+    {
+      title: "List Namespaces",
+      description: "Lists all namespaces in the cluster with deployment counts and basic information",
+      inputSchema: {}
+    },
+    async () => {
+      try {
+        const namespaces = await k8sService.listNamespaces();
+        
+        return {
+          content: [{
+            type: "text",
+            text: `📋 **Kubernetes Namespaces** (${namespaces.length} total)
+
+${namespaces.map(ns => `**${ns.name}**
+- Status: ${ns.status}
+- Deployments: ${ns.deploymentCount}
+- Created: ${ns.creationTimestamp}`).join('\n\n')}
+
+💡 **Tip**: Use the namespace name with other tools to manage specific deployments.`
+          }]
+        };
+      } catch (error) {
+        return {
+          content: [{
+            type: "text",
+            text: `❌ Error listing namespaces: ${error instanceof Error ? error.message : 'Unknown error'}`
+          }],
+          isError: true
+        };
+      }
+    }
+  );
+
+  // Tool 3: List Deployments
+  server.registerTool(
+    "list_deployments",
+    {
+      title: "List Deployments",
+      description: "Lists all deployments in the cluster or a specific namespace with health status",
+      inputSchema: {
+        namespace: z.string().optional().describe("Optional: specific namespace to filter deployments")
+      }
+    },
+    async ({ namespace }) => {
+      try {
+        const deployments = await k8sService.listDeployments(namespace);
+        
+        if (deployments.length === 0) {
+          return {
+            content: [{
+              type: "text",
+              text: `📝 No deployments found${namespace ? ` in namespace "${namespace}"` : ' in the cluster'}.`
+            }]
+          };
+        }
+
+        const healthyCount = deployments.filter(d => d.health === 'Healthy').length;
+        const unhealthyCount = deployments.filter(d => d.health === 'Unhealthy').length;
+        const progressingCount = deployments.filter(d => d.health === 'Progressing').length;
+        
+        return {
+          content: [{
+            type: "text",
+            text: `🚀 **Kubernetes Deployments**${namespace ? ` in namespace "${namespace}"` : ''} (${deployments.length} total)
+
+**Health Summary:**
+- ✅ Healthy: ${healthyCount}
+- ⚠️ Progressing: ${progressingCount}
+- ❌ Unhealthy: ${unhealthyCount}
+
+**Deployment Details:**
+${deployments.map(d => `**${d.name}** (${d.namespace})
+- Health: ${d.health === 'Healthy' ? '✅' : d.health === 'Progressing' ? '⚠️' : '❌'} ${d.health}
+- Replicas: ${d.readyReplicas}/${d.replicas}
+- Image: ${d.currentImage}
+- Created: ${d.creationTimestamp}`).join('\n\n')}
+
+💡 **Tip**: Use deployment name and namespace with other tools for management operations.`
+          }]
+        };
+      } catch (error) {
+        return {
+          content: [{
+            type: "text",
+            text: `❌ Error listing deployments: ${error instanceof Error ? error.message : 'Unknown error'}`
+          }],
+          isError: true
+        };
+      }
+    }
+  );
+
+  // Tool 4: Get Deployment Status
   server.registerTool(
     "get_deployment_status",
     {
@@ -76,7 +218,7 @@ ${status.events.map(e => `- ${e.type}: ${e.reason} - ${e.message}`).join('\n')}
     }
   );
 
-  // Tool 2: Scale Deployment
+  // Tool 5: Scale Deployment
   server.registerTool(
     "scale_deployment",
     {
@@ -121,7 +263,7 @@ ${result.warnings.map(w => `- ${w}`).join('\n')}
     }
   );
 
-  // Tool 3: Toggle Feature Flag
+  // Tool 6: Toggle Feature Flag
   server.registerTool(
     "toggle_feature_flag",
     {
@@ -168,7 +310,7 @@ ${result.additionalInfo ? `
     }
   );
 
-  // Tool 4: Rollback Deployment
+  // Tool 7: Rollback Deployment
   server.registerTool(
     "rollback_deployment",
     {
@@ -219,7 +361,7 @@ ${result.warnings.map(w => `- ${w}`).join('\n')}
     }
   );
 
-  // Tool 5: Deploy Version
+  // Tool 8: Deploy Version
   server.registerTool(
     "deploy_version",
     {
@@ -280,7 +422,7 @@ ${result.warnings.map(w => `- ${w}`).join('\n')}
     }
   );
 
-  // Tool 6: Get Pod Logs
+  // Tool 9: Get Pod Logs
   server.registerTool(
     "get_pod_logs",
     {
@@ -354,7 +496,7 @@ ${result.errors.map(e => `- ${e}`).join('\n')}
   await server.connect(transport);
   
   console.error("🚀 Kubernetes Deployment MCP Server is running...");
-  console.error("📋 Available tools: get_deployment_status, scale_deployment, toggle_feature_flag, rollback_deployment, deploy_version, get_pod_logs");
+  console.error("📋 Available tools: get_cluster_info, list_namespaces, list_deployments, get_deployment_status, scale_deployment, toggle_feature_flag, rollback_deployment, deploy_version, get_pod_logs");
 }
 
 // Handle graceful shutdown

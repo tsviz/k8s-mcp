@@ -1,0 +1,19 @@
+{
+  "mcpServers": {
+    "k8s-deployment-server": {
+      "command": "docker",
+      "args": [
+        "run",
+        "--rm",
+        "-i",
+        "--net=host",
+        "-v",
+        "${HOME}/.kube:/home/mcp/.kube:ro",
+        "k8s-mcp-server:dev_v1.0.0"
+      ],
+      "env": {
+        "NODE_ENV": "production"
+      }
+    }
+  }
+}

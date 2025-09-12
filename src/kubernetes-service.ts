@@ -82,6 +82,33 @@ export interface PodLogsResult {
   errors: string[];
 }
 
+export interface ClusterInfo {
+  clusterName: string;
+  currentContext: string;
+  serverUrl: string;
+  kubernetesVersion: string;
+  nodeCount: number;
+  namespaceCount: number;
+  user: string;
+}
+
+export interface NamespaceInfo {
+  name: string;
+  status: string;
+  creationTimestamp: string;
+  deploymentCount: number;
+}
+
+export interface DeploymentSummary {
+  name: string;
+  namespace: string;
+  replicas: number;
+  readyReplicas: number;
+  currentImage: string;
+  health: string;
+  creationTimestamp: string;
+}
+
 /**
  * Kubernetes Service class that handles all Kubernetes operations
  * Uses the official Kubernetes JavaScript client
@@ -106,6 +133,17 @@ export class KubernetesService {
       this.eventsApi = this.kc.makeApiClient(k8s.EventsV1Api);
       
       console.error('✅ Kubernetes client initialized successfully');
+      
+      // Log cluster connection info for debugging
+      try {
+        const clusterInfo = await this.getClusterInfo();
+        console.error(`🔗 Connected to cluster: ${clusterInfo.clusterName} (${clusterInfo.serverUrl})`);
+        console.error(`👤 User: ${clusterInfo.user}, Context: ${clusterInfo.currentContext}`);
+        console.error(`🏗️ Kubernetes version: ${clusterInfo.kubernetesVersion}`);
+        console.error(`📊 Resources: ${clusterInfo.nodeCount} nodes, ${clusterInfo.namespaceCount} namespaces`);
+      } catch (error) {
+        console.error('⚠️ Could not retrieve cluster info:', error);
+      }
     } catch (error) {
       console.error('❌ Failed to initialize Kubernetes client:', error);
       throw error;
@@ -594,6 +632,151 @@ export class KubernetesService {
       };
     } catch (error) {
       throw new Error(`Failed to get pod logs: ${error}`);
+    }
+  }
+
+  /**
+   * Get cluster information including connection details and basic stats
+   */
+  async getClusterInfo(): Promise<ClusterInfo> {
+    try {
+      const currentContext = this.kc.getCurrentContext();
+      const cluster = this.kc.getCurrentCluster();
+      const user = this.kc.getCurrentUser();
+
+      // Get Kubernetes version
+      const versionApi = this.kc.makeApiClient(k8s.VersionApi);
+      const versionResponse = await versionApi.getCode();
+      const kubernetesVersion = versionResponse.body.gitVersion || 'Unknown';
+
+      // Get node count
+      const nodesResponse = await this.coreApi.listNode();
+      const nodeCount = nodesResponse.body.items.length;
+
+      // Get namespace count
+      const namespacesResponse = await this.coreApi.listNamespace();
+      const namespaceCount = namespacesResponse.body.items.length;
+
+      return {
+        clusterName: cluster?.name || 'Unknown',
+        currentContext: currentContext || 'Unknown',
+        serverUrl: cluster?.server || 'Unknown',
+        kubernetesVersion,
+        nodeCount,
+        namespaceCount,
+        user: user?.name || 'Unknown'
+      };
+    } catch (error) {
+      throw new Error(`Failed to get cluster info: ${error}`);
+    }
+  }
+
+  /**
+   * List all namespaces with basic information
+   */
+  async listNamespaces(): Promise<NamespaceInfo[]> {
+    try {
+      const namespacesResponse = await this.coreApi.listNamespace();
+      const namespaces: NamespaceInfo[] = [];
+
+      for (const ns of namespacesResponse.body.items) {
+        const name = ns.metadata?.name || 'Unknown';
+        const status = ns.status?.phase || 'Unknown';
+        const creationTimestamp = ns.metadata?.creationTimestamp?.toString() || 'Unknown';
+
+        // Get deployment count for this namespace
+        let deploymentCount = 0;
+        try {
+          const deploymentsResponse = await this.k8sApi.listNamespacedDeployment(name);
+          deploymentCount = deploymentsResponse.body.items.length;
+        } catch (error) {
+          // Ignore errors (might be permission issues)
+        }
+
+        namespaces.push({
+          name,
+          status,
+          creationTimestamp,
+          deploymentCount
+        });
+      }
+
+      return namespaces;
+    } catch (error) {
+      throw new Error(`Failed to list namespaces: ${error}`);
+    }
+  }
+
+  /**
+   * List all deployments across all namespaces (or specific namespace)
+   */
+  async listDeployments(namespace?: string): Promise<DeploymentSummary[]> {
+    try {
+      const deployments: DeploymentSummary[] = [];
+
+      if (namespace) {
+        // List deployments in specific namespace
+        const deploymentsResponse = await this.k8sApi.listNamespacedDeployment(namespace);
+        
+        for (const deployment of deploymentsResponse.body.items) {
+          const summary = this.createDeploymentSummary(deployment, namespace);
+          if (summary) deployments.push(summary);
+        }
+      } else {
+        // List deployments across all namespaces
+        const deploymentsResponse = await this.k8sApi.listDeploymentForAllNamespaces();
+        
+        for (const deployment of deploymentsResponse.body.items) {
+          const deploymentNamespace = deployment.metadata?.namespace || 'default';
+          const summary = this.createDeploymentSummary(deployment, deploymentNamespace);
+          if (summary) deployments.push(summary);
+        }
+      }
+
+      return deployments.sort((a, b) => a.namespace.localeCompare(b.namespace) || a.name.localeCompare(b.name));
+    } catch (error) {
+      throw new Error(`Failed to list deployments: ${error}`);
+    }
+  }
+
+  /**
+   * Helper method to create deployment summary from Kubernetes deployment object
+   */
+  private createDeploymentSummary(deployment: any, namespace: string): DeploymentSummary | null {
+    try {
+      const name = deployment.metadata?.name;
+      if (!name) return null;
+
+      const replicas = deployment.spec?.replicas || 0;
+      const readyReplicas = deployment.status?.readyReplicas || 0;
+      const currentImage = deployment.spec?.template?.spec?.containers?.[0]?.image || 'Unknown';
+      const creationTimestamp = deployment.metadata?.creationTimestamp?.toString() || 'Unknown';
+
+      // Determine health status
+      let health = 'Unknown';
+      const conditions = deployment.status?.conditions || [];
+      const availableCondition = conditions.find((c: any) => c.type === 'Available');
+      const progressingCondition = conditions.find((c: any) => c.type === 'Progressing');
+      
+      if (availableCondition?.status === 'True' && readyReplicas === replicas) {
+        health = 'Healthy';
+      } else if (progressingCondition?.status === 'True') {
+        health = 'Progressing';
+      } else {
+        health = 'Unhealthy';
+      }
+
+      return {
+        name,
+        namespace,
+        replicas,
+        readyReplicas,
+        currentImage,
+        health,
+        creationTimestamp
+      };
+    } catch (error) {
+      return null;
     }
   }
 }
