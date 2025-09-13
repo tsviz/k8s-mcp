@@ -1,0 +1,22 @@
+{
+  "mcpServers": {
+    "k8s-deployment-server-docker": {
+      "command": "docker",
+      "args": [
+        "run", "-i", "--rm",
+        "-v", "/Users/you/.kube:/home/mcp/.kube:ro",
+        "-v", "/path/to/your/policies:/app/policies:ro",
+        "-e", "POLICY_CONFIG_PATH=/app/policies/production.json",
+        "-e", "NODE_ENV=production",
+        "ghcr.io/tsviz/k8s-mcp:latest"
+      ]
+    },
+    "k8s-deployment-server-compose": {
+      "command": "docker-compose",
+      "args": ["-f", "/path/to/k8s-mcp/docker-compose.yml", "run", "--rm", "k8s-mcp-server"],
+      "env": {
+        "POLICY_CONFIG_PATH": "/app/config/policies/production.json"
+      }
+    }
+  }
+}

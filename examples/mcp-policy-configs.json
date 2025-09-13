@@ -1,0 +1,34 @@
+{
+  "mcpServers": {
+    "k8s-deployment-server": {
+      "command": "node",
+      "args": ["dist/index.js"],
+      "cwd": "/path/to/k8s-mcp",
+      "env": {
+        "POLICY_CONFIG_PATH": "/path/to/k8s-mcp/config/policies/production.json",
+        "NODE_ENV": "production",
+        "KUBECONFIG": "/path/to/.kube/config"
+      }
+    },
+    "k8s-deployment-server-dev": {
+      "command": "node", 
+      "args": ["dist/index.js"],
+      "cwd": "/path/to/k8s-mcp",
+      "env": {
+        "POLICY_CONFIG_PATH": "/path/to/k8s-mcp/config/policies/development.json",
+        "NODE_ENV": "development",
+        "KUBECONFIG": "/path/to/.kube/config"
+      }
+    },
+    "k8s-deployment-server-hipaa": {
+      "command": "node",
+      "args": ["dist/index.js"], 
+      "cwd": "/path/to/k8s-mcp",
+      "env": {
+        "POLICY_CONFIG_PATH": "/path/to/k8s-mcp/config/policies/hipaa-compliant.json",
+        "NODE_ENV": "production",
+        "KUBECONFIG": "/path/to/.kube/config"
+      }
+    }
+  }
+}

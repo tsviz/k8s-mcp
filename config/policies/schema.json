@@ -1,0 +1,256 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Kubernetes Policy Configuration",
+  "description": "Configuration for Kubernetes governance policies",
+  "type": "object",
+  "properties": {
+    "organization": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Organization name"
+        },
+        "environment": {
+          "type": "string",
+          "enum": ["development", "staging", "production"],
+          "description": "Environment type"
+        },
+        "compliance": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["SOC2", "HIPAA", "PCI-DSS", "ISO27001", "GDPR"]
+          },
+          "description": "Compliance frameworks to enforce"
+        }
+      },
+      "required": ["name", "environment"]
+    },
+    "global": {
+      "type": "object",
+      "properties": {
+        "enforcement": {
+          "type": "string",
+          "enum": ["strict", "advisory", "disabled"],
+          "default": "advisory",
+          "description": "Global enforcement level"
+        },
+        "autoFix": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable automatic fixes for violations"
+        },
+        "excludedNamespaces": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Namespaces to exclude from policy enforcement"
+        }
+      }
+    },
+    "categories": {
+      "type": "object",
+      "properties": {
+        "security": {
+          "$ref": "#/definitions/categoryConfig"
+        },
+        "compliance": {
+          "$ref": "#/definitions/categoryConfig"
+        },
+        "performance": {
+          "$ref": "#/definitions/categoryConfig"
+        },
+        "cost": {
+          "$ref": "#/definitions/categoryConfig"
+        },
+        "operations": {
+          "$ref": "#/definitions/categoryConfig"
+        }
+      }
+    },
+    "customRules": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/policyRule"
+      },
+      "description": "Custom policy rules specific to your organization"
+    },
+    "ruleOverrides": {
+      "type": "object",
+      "description": "Override settings for default rules",
+      "patternProperties": {
+        "^[a-z]+-[0-9]+$": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "severity": {
+              "type": "string",
+              "enum": ["low", "medium", "high", "critical"]
+            },
+            "enforcement": {
+              "type": "string",
+              "enum": ["strict", "advisory", "disabled"]
+            }
+          }
+        }
+      }
+    },
+    "notifications": {
+      "type": "object",
+      "properties": {
+        "slack": {
+          "type": "object",
+          "properties": {
+            "webhookUrl": {
+              "type": "string"
+            },
+            "channel": {
+              "type": "string"
+            },
+            "severityLevels": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": ["low", "medium", "high", "critical"]
+              }
+            }
+          }
+        },
+        "email": {
+          "type": "object",
+          "properties": {
+            "recipients": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "email"
+              }
+            },
+            "severityLevels": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": ["low", "medium", "high", "critical"]
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "required": ["organization"],
+  "definitions": {
+    "categoryConfig": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "enforcement": {
+          "type": "string",
+          "enum": ["strict", "advisory", "disabled"],
+          "default": "advisory"
+        },
+        "autoFix": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
+    "policyRule": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z]+-[0-9]+$"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "severity": {
+          "type": "string",
+          "enum": ["low", "medium", "high", "critical"]
+        },
+        "category": {
+          "type": "string",
+          "enum": ["security", "compliance", "performance", "cost", "operations"]
+        },
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "scope": {
+          "type": "string",
+          "enum": ["cluster", "namespace", "deployment", "pod", "resource"]
+        },
+        "conditions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/condition"
+          }
+        },
+        "actions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/action"
+          }
+        },
+        "metadata": {
+          "type": "object"
+        }
+      },
+      "required": ["id", "name", "description", "severity", "category", "scope", "conditions", "actions"]
+    },
+    "condition": {
+      "type": "object",
+      "properties": {
+        "field": {
+          "type": "string"
+        },
+        "operator": {
+          "type": "string",
+          "enum": ["equals", "not_equals", "contains", "not_contains", "greater_than", "less_than", "regex_match", "exists", "not_exists"]
+        },
+        "value": {},
+        "description": {
+          "type": "string"
+        }
+      },
+      "required": ["field", "operator", "value"]
+    },
+    "action": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["deny", "warn", "modify", "audit", "notify"]
+        },
+        "message": {
+          "type": "string"
+        },
+        "autoFix": {
+          "type": "boolean",
+          "default": false
+        },
+        "fixAction": {
+          "type": "string"
+        },
+        "notificationChannels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": ["type", "message"]
+    }
+  }
+}

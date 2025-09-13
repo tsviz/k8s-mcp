@@ -14,3 +14,20 @@ coverage/
 *.swp
 *.swo
 *~
+
+# Local testing reports and summaries
+LOCAL_TESTING_SUMMARY.md
+COPILOT_TESTING.md
+*_TESTING_*.md
+test-reports/
+testing-results/
+local-test-*.json
+*-test-summary.*
+
+# Policy testing files
+test-policy.json
+*-policy-test.json
+policy-test-*.json
+*-test-policy.*
+test-policies/
+policy-testing/

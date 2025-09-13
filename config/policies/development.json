@@ -1,0 +1,88 @@
+{
+  "organization": {
+    "name": "StartupCo",
+    "environment": "development",
+    "compliance": []
+  },
+  "global": {
+    "enforcement": "advisory",
+    "autoFix": true,
+    "excludedNamespaces": ["kube-system", "kube-public"]
+  },
+  "categories": {
+    "security": {
+      "enabled": true,
+      "enforcement": "advisory",
+      "autoFix": true
+    },
+    "compliance": {
+      "enabled": false,
+      "enforcement": "disabled",
+      "autoFix": false
+    },
+    "performance": {
+      "enabled": true,
+      "enforcement": "advisory",
+      "autoFix": true
+    },
+    "cost": {
+      "enabled": true,
+      "enforcement": "advisory",
+      "autoFix": false
+    },
+    "operations": {
+      "enabled": true,
+      "enforcement": "advisory",
+      "autoFix": true
+    }
+  },
+  "ruleOverrides": {
+    "sec-002": {
+      "enabled": false
+    },
+    "comp-001": {
+      "enabled": false
+    },
+    "comp-002": {
+      "enabled": false
+    }
+  },
+  "customRules": [
+    {
+      "id": "dev-001",
+      "name": "Development Resource Efficiency",
+      "description": "Development workloads should be resource efficient",
+      "severity": "low",
+      "category": "cost",
+      "enabled": true,
+      "scope": "deployment",
+      "conditions": [
+        {
+          "field": "spec.template.spec.containers[*].resources.limits.memory",
+          "operator": "less_than",
+          "value": "2Gi",
+          "description": "Development workloads should use less than 2Gi memory"
+        },
+        {
+          "field": "spec.template.spec.containers[*].resources.limits.cpu",
+          "operator": "less_than",
+          "value": "1000m",
+          "description": "Development workloads should use less than 1 CPU core"
+        }
+      ],
+      "actions": [
+        {
+          "type": "warn",
+          "message": "Consider reducing resource limits for development workloads to save costs"
+        }
+      ]
+    }
+  ],
+  "notifications": {
+    "slack": {
+      "webhookUrl": "https://hooks.slack.com/services/YOUR/DEV/WEBHOOK",
+      "channel": "#dev-platform",
+      "severityLevels": ["high", "critical"]
+    }
+  }
+}

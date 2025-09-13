@@ -1,0 +1,175 @@
+{
+  "organization": {
+    "name": "HealthCorp",
+    "environment": "production",
+    "compliance": ["HIPAA", "SOC2"]
+  },
+  "global": {
+    "enforcement": "strict",
+    "autoFix": false,
+    "excludedNamespaces": ["kube-system", "kube-public", "kube-node-lease"]
+  },
+  "categories": {
+    "security": {
+      "enabled": true,
+      "enforcement": "strict",
+      "autoFix": false
+    },
+    "compliance": {
+      "enabled": true,
+      "enforcement": "strict",
+      "autoFix": false
+    },
+    "performance": {
+      "enabled": true,
+      "enforcement": "strict",
+      "autoFix": false
+    },
+    "cost": {
+      "enabled": true,
+      "enforcement": "advisory",
+      "autoFix": false
+    },
+    "operations": {
+      "enabled": true,
+      "enforcement": "strict",
+      "autoFix": false
+    }
+  },
+  "ruleOverrides": {
+    "sec-001": {
+      "enabled": true,
+      "severity": "critical",
+      "enforcement": "strict"
+    },
+    "sec-002": {
+      "enabled": true,
+      "severity": "critical",
+      "enforcement": "strict"
+    },
+    "sec-003": {
+      "enabled": true,
+      "severity": "critical",
+      "enforcement": "strict"
+    }
+  },
+  "customRules": [
+    {
+      "id": "hipaa-001",
+      "name": "HIPAA Data Encryption",
+      "description": "All volumes must be encrypted for HIPAA compliance",
+      "severity": "critical",
+      "category": "compliance",
+      "enabled": true,
+      "scope": "deployment",
+      "conditions": [
+        {
+          "field": "spec.template.spec.volumes[*].persistentVolumeClaim",
+          "operator": "exists",
+          "value": true,
+          "description": "PVC must be encrypted"
+        }
+      ],
+      "actions": [
+        {
+          "type": "deny",
+          "message": "All persistent volumes must be encrypted for HIPAA compliance"
+        }
+      ],
+      "metadata": {
+        "compliance": "HIPAA",
+        "owner": "compliance-team"
+      }
+    },
+    {
+      "id": "hipaa-002",
+      "name": "PHI Processing Labels",
+      "description": "Workloads processing PHI must be properly labeled",
+      "severity": "high",
+      "category": "compliance",
+      "enabled": true,
+      "scope": "deployment",
+      "conditions": [
+        {
+          "field": "metadata.labels.data-classification",
+          "operator": "exists",
+          "value": true,
+          "description": "Data classification label is required"
+        },
+        {
+          "field": "metadata.labels.phi-processing",
+          "operator": "exists",
+          "value": true,
+          "description": "PHI processing label is required"
+        }
+      ],
+      "actions": [
+        {
+          "type": "deny",
+          "message": "Workloads must be labeled for data classification and PHI processing"
+        }
+      ]
+    },
+    {
+      "id": "health-001",
+      "name": "Network Policies Required",
+      "description": "All namespaces must have network policies for isolation",
+      "severity": "high",
+      "category": "security",
+      "enabled": true,
+      "scope": "namespace",
+      "conditions": [
+        {
+          "field": "metadata.annotations.network-policy",
+          "operator": "exists",
+          "value": true,
+          "description": "Network policy annotation is required"
+        }
+      ],
+      "actions": [
+        {
+          "type": "deny",
+          "message": "Network policies are required for proper workload isolation"
+        }
+      ]
+    },
+    {
+      "id": "health-002",
+      "name": "Audit Logging Required",
+      "description": "All deployments must enable audit logging",
+      "severity": "high",
+      "category": "compliance",
+      "enabled": true,
+      "scope": "deployment",
+      "conditions": [
+        {
+          "field": "metadata.annotations.audit-logging",
+          "operator": "equals",
+          "value": "enabled",
+          "description": "Audit logging must be enabled"
+        }
+      ],
+      "actions": [
+        {
+          "type": "deny",
+          "message": "Audit logging is required for compliance and security monitoring"
+        }
+      ]
+    }
+  ],
+  "notifications": {
+    "slack": {
+      "webhookUrl": "https://hooks.slack.com/services/HEALTH/CORP/WEBHOOK",
+      "channel": "#security-alerts",
+      "severityLevels": ["medium", "high", "critical"]
+    },
+    "email": {
+      "recipients": [
+        "security@healthcorp.com",
+        "compliance@healthcorp.com",
+        "platform@healthcorp.com"
+      ],
+      "severityLevels": ["high", "critical"]
+    }
+  }
+}

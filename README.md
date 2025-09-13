@@ -4,21 +4,187 @@
 ![License](https://img.shields.io/github/license/tsviz/k8s-mcp)
 ![Version](https://img.shields.io/github/v/release/tsviz/k8s-mcp)
 
-A Model Context Protocol (MCP) server that provides AI-driven automation tools for managing Kubernetes deployments. This server exposes 6 powerful tools for deployment lifecycle management, allowing LLMs to interact with Kubernetes clusters in a secure and structured way.
+A Model Context Protocol (MCP) server that provides AI-driven automation tools for managing Kubernetes deployments with integ### 📚 **Summary**
+
+The k8s MCP server is a **powerful diagnostic and emergency response tool** that enhances your DevOps capabilities. However, it should **complement**, not **replace**, your established CI/CD pipelines and change management processes.
+
+**Think of it as:**
+- 🔧 **A sophisticated wrench** - Great for specific tasks
+- 🚨 **An emergency toolkit** - Essential when things go wrong  
+- 👁️ **An observability lens** - Perfect for understanding system state
+
+**NOT as:**
+- 🏭 **A production assembly line** - That's what CI/CD is for
+- 🤖 **An autonomous deployment system** - Human oversight is essential
+- 🔓 **A way to bypass security** - Always follow the principle of least privilege
+
+**Remember**: With great power comes great responsibility. Use wisely! 🦸‍♂️
+
+## 🏛️ Policy as Code Configuration
+
+### Built-in Policy Rules
+
+The MCP server includes **13+ comprehensive policy rules** across 5 categories:
+
+| Category | Rules | Description |
+|----------|-------|-------------|
+| 🔒 **Security** | 5 rules | Security contexts, image policies, network security |
+| 🏢 **Compliance** | 3 rules | Required labels, data classification, audit trails |
+| ⚡ **Performance** | 3 rules | Resource limits, health checks, availability |
+| 💰 **Cost** | 2 rules | Resource efficiency, idle resource detection |
+| 🔧 **Operations** | 3+ rules | Deployment strategies, configuration management |
+
+### External Policy Configuration
+
+**📁 Policy Storage Options:**
+- **Built-in**: Default policies in `src/policy-engine.ts`
+- **External**: JSON files in `config/policies/` directory
+- **Organization-specific**: Custom policy files for your environment
+
+**🔧 Configuration Methods:**
+
+#### 1. Environment Variable Method
+```json
+{
+  "mcpServers": {
+    "k8s-deployment-server": {
+      "command": "node",
+      "args": ["dist/index.js"],
+      "env": {
+        "POLICY_CONFIG_PATH": "/path/to/your/policies/production.json"
+      }
+    }
+  }
+}
+```
+
+#### 2. Automatic Environment Detection
+```json
+{
+  "mcpServers": {
+    "k8s-deployment-server": {
+      "command": "node", 
+      "args": ["dist/index.js"],
+      "env": {
+        "NODE_ENV": "production"  // Auto-loads config/policies/production.json
+      }
+    }
+  }
+}
+```
+
+#### 3. Docker with Policy Volumes
+```json
+{
+  "mcpServers": {
+    "k8s-deployment-server": {
+      "command": "docker",
+      "args": [
+        "run", "-i", "--rm",
+        "-v", "/path/to/policies:/app/policies:ro",
+        "-e", "POLICY_CONFIG_PATH=/app/policies/production.json",
+        "ghcr.io/tsviz/k8s-mcp:latest"
+      ]
+    }
+  }
+}
+```
+
+### Policy Templates
+
+**📋 Pre-built Templates:**
+- `config/policies/production.json` - Production environment policies
+- `config/policies/development.json` - Development environment policies  
+- `config/policies/hipaa-compliant.json` - Healthcare compliance (HIPAA)
+- `config/policies/schema.json` - JSON schema for validation
+
+**🏢 Organization Examples:**
+```json
+{
+  "organization": {
+    "name": "ACME Corporation",
+    "environment": "production",
+    "compliance": ["SOC2", "ISO27001"]
+  },
+  "global": {
+    "enforcement": "strict",
+    "autoFix": false,
+    "excludedNamespaces": ["kube-system"]
+  },
+  "customRules": [
+    {
+      "id": "acme-001",
+      "name": "ACME Approved Images",
+      "description": "Only approved registry images allowed",
+      "severity": "high",
+      "category": "compliance",
+      "conditions": [
+        {
+          "field": "spec.template.spec.containers[*].image",
+          "operator": "regex_match",
+          "value": "^registry\\.acme\\.com/"
+        }
+      ]
+    }
+  ]
+}
+```
+
+**📚 Detailed Documentation:**
+- **Complete Guide**: [`docs/EXTERNAL_POLICY_CONFIG.md`](docs/EXTERNAL_POLICY_CONFIG.md)
+- **Policy as Code**: [`docs/POLICY_AS_CODE.md`](docs/POLICY_AS_CODE.md)
+- **JSON Schema**: [`config/policies/schema.json`](config/policies/schema.json)
+
+### Auto-Remediation Capabilities
+
+The policy engine can automatically fix common issues:
+
+**🔧 Security Fixes:**
+- Add missing security contexts (non-root user, read-only filesystem)
+- Remove dangerous capabilities and privilege escalation
+- Apply pod security standards automatically
+
+**⚡ Performance Fixes:**
+- Add missing resource limits and requests
+- Configure liveness and readiness probes
+- Apply anti-affinity rules for high availability
+
+**🏢 Compliance Fixes:**
+- Add required organizational labels
+- Apply consistent naming conventions
+- Configure audit logging and monitoringas Code** governance. This server exposes 13 powerful tools for deployment lifecycle management and compliance automation, allowing LLMs to interact with Kubernetes clusters in a secure, governed, and structured way.
 
 ## 🚀 Features
 
-### Core Tools
+### Core Deployment Tools
 
-1. **get_deployment_status** - Check deployment health, replica status, conditions, and recent events
-2. **scale_deployment** - Horizontally scale deployments with wait-for-ready support  
-3. **toggle_feature_flag** - Enable/disable feature flags via environment variables or ConfigMaps
-4. **rollback_deployment** - Rollback to previous deployment versions with revision control
-5. **deploy_version** - Deploy specific application versions with rollout tracking
-6. **get_pod_logs** - Retrieve pod logs for debugging and monitoring
+1. **get_cluster_info** - Get cluster connection and basic information
+2. **list_namespaces** - List all namespaces with deployment counts  
+3. **list_deployments** - List all deployments with health status
+4. **get_deployment_status** - Check deployment health, replica status, conditions, and recent events
+5. **scale_deployment** - Horizontally scale deployments with wait-for-ready support  
+6. **toggle_feature_flag** - Enable/disable feature flags via environment variables or ConfigMaps
+7. **rollback_deployment** - Rollback to previous deployment versions with revision control
+8. **deploy_version** - Deploy specific application versions with rollout tracking
+9. **get_pod_logs** - Retrieve pod logs for debugging and monitoring
 
-### Key Capabilities
+### 🏛️ Policy as Code & Governance Tools
 
+10. **evaluate_deployment_policies** - Evaluate deployments against organizational policies
+11. **generate_compliance_report** - Generate comprehensive compliance reports
+12. **auto_fix_policy_violations** - Automatically fix policy violations where safe
+13. **list_policy_rules** - List and manage policy rules
+
+### 🎯 Policy Framework Features
+
+- **🏛️ Comprehensive Policy Engine**: 13+ built-in rules across 5 categories (Security, Compliance, Performance, Cost, Operations)
+- **🔒 Compliance Standards**: Pre-built support for SOC2, HIPAA, PCI-DSS, ISO27001 frameworks
+- **🔧 Auto-Remediation**: Intelligent fixing of security contexts, resource limits, and configuration issues  
+- **📊 Compliance Reporting**: Detailed audit reports with violation tracking and trend analysis
+- **🎨 Custom Policies**: Create organization-specific rules with JSON configuration
+- **🌍 External Configuration**: Store policies in external files for version control and environment separation
+- **📋 Policy Templates**: Ready-to-use templates for different industries and compliance requirements
+- **🔄 Real-time Evaluation**: Live policy checking during deployment operations
 - **AI-Driven Automation**: Each tool provides rich, structured responses perfect for LLM interpretation
 - **Kubernetes Native**: Built using the official Kubernetes JavaScript client
 - **Comprehensive Monitoring**: Detailed status reporting with health checks, events, and metrics  
@@ -28,6 +194,65 @@ A Model Context Protocol (MCP) server that provides AI-driven automation tools f
 - **🔒 Security First**: Regular vulnerability scanning and automated dependency updates
 
 ## 🎯 Use Cases
+
+<details>
+<summary><strong>🏛️ Policy Compliance & Governance</strong></summary>
+
+**Scenario:** You need to ensure all deployments meet organizational security and compliance standards.
+
+**AI Interaction:**
+```
+User: "Check if my web-app deployment meets our security policies"
+
+AI: "Let me evaluate your deployment against all policies..."
+```
+
+**MCP Tools Used:**
+- `evaluate_deployment_policies()` - Check compliance against all rules
+- `auto_fix_policy_violations()` - Fix security context and resource issues
+- `generate_compliance_report()` - Generate audit reports
+
+**Policy Categories & Rules:**
+
+🔒 **Security Policies (5 rules)**
+- Security contexts required (non-root users, read-only filesystems)
+- Container image security (approved registries, no latest tags)
+- Network policies and service account configurations
+- Resource isolation and privilege escalation prevention
+
+🏢 **Compliance Policies (3 rules)**  
+- Required labels for governance (cost-center, team, component)
+- Data classification and handling requirements
+- Audit trail and change management compliance
+
+⚡ **Performance Policies (3 rules)**
+- Resource limits and requests defined  
+- Health checks configured (liveness/readiness probes)
+- Anti-affinity rules for high availability
+
+💰 **Cost Optimization (2 rules)**
+- Resource efficiency and right-sizing
+- Idle resource detection and recommendations
+
+🔧 **Operational Policies (3 rules)**
+- Deployment strategy validation
+- Configuration management best practices
+- Monitoring and observability requirements
+
+**Auto-Remediation Examples:**
+- **Missing security context** → Add non-root user, read-only filesystem
+- **No resource limits** → Apply recommended CPU/memory limits based on workload
+- **Missing health checks** → Add liveness/readiness probes with sensible defaults
+- **Incorrect labels** → Apply organization-standard labels automatically
+
+**Compliance Standards Supported:**
+- **HIPAA**: Healthcare data protection and privacy requirements
+- **SOC2**: Security, availability, and confidentiality controls  
+- **PCI-DSS**: Payment card industry data security standards
+- **ISO27001**: Information security management systems
+- **Custom**: Organization-specific governance frameworks
+
+</details>
 
 <details>
 <summary><strong>🚨 Performance Troubleshooting & Diagnostics</strong></summary>
@@ -358,6 +583,25 @@ The k8s MCP server is a **powerful diagnostic and emergency response tool** that
 }
 ```
 
+**With external policy configuration:**
+```json
+{
+  "servers": {
+    "k8s-deployment-server": {
+      "command": "docker", 
+      "args": [
+        "run", "-i", "--rm",
+        "-v", "/path/to/.kube:/home/mcp/.kube:ro",
+        "-v", "/path/to/policies:/app/policies:ro",
+        "-e", "POLICY_CONFIG_PATH=/app/policies/production.json",
+        "ghcr.io/tsviz/k8s-mcp:latest"
+      ],
+      "type": "stdio"
+    }
+  }
+}
+```
+
 **Specific version (recommended for production):**
 ```json
 {
@@ -652,6 +896,177 @@ Container: myapp
 ```
 ```
 
+### 7. evaluate_deployment_policies
+
+Evaluate a deployment against organizational policies and compliance rules.
+
+**Parameters:**
+- `namespace` (string): Kubernetes namespace
+- `deployment` (string): Deployment name
+- `policyConfig` (string, optional): Path to external policy configuration
+
+**Example Response:**
+```
+🏛️ Policy Evaluation Results for myapp in production:
+
+📊 Overall Compliance: 85% (11/13 rules passed)
+
+✅ PASSED (8 rules):
+- sec-001: Security Context Defined
+- sec-002: Non-Root User Required  
+- perf-001: Resource Limits Set
+- comp-001: Required Labels Present
+- cost-001: Resource Efficiency
+- ops-001: Health Checks Configured
+- ops-002: Deployment Strategy Valid
+- ops-003: Image Pull Policy Set
+
+⚠️ FAILED (2 rules):
+- sec-003: Read-Only Root Filesystem (MEDIUM)
+  └ Containers should use read-only root filesystem
+- comp-002: Cost Center Label Missing (LOW)  
+  └ Required label 'cost-center' not found
+
+🔧 Auto-Fix Available: 2 violations can be automatically remediated
+💡 Recommendation: Run auto_fix_policy_violations to apply fixes
+```
+
+### 8. auto_fix_policy_violations
+
+Automatically fix policy violations where safe to do so.
+
+**Parameters:**
+- `namespace` (string): Kubernetes namespace
+- `deployment` (string): Deployment name
+- `dryRun` (boolean, optional): Preview changes without applying
+- `policyConfig` (string, optional): Path to external policy configuration
+
+**Example Response:**
+```
+🔧 Auto-Fix Policy Violations for myapp in production:
+
+📋 Fixes Applied (2 violations):
+
+✅ Fixed: Read-Only Root Filesystem
+- Added readOnlyRootFilesystem: true to all containers
+- Impact: Enhanced security, prevents runtime file modifications
+
+✅ Fixed: Cost Center Label Missing  
+- Added label 'cost-center': 'engineering'
+- Impact: Improved cost tracking and governance
+
+🚀 Deployment Updated: Triggered rolling update
+⏱️ Duration: 45000ms
+📊 New Compliance Score: 100% (13/13 rules passed)
+
+🛡️ Safety: Only safe, non-breaking changes were applied
+💡 Manual Review Required: 0 violations need human intervention
+```
+
+### 9. generate_compliance_report
+
+Generate comprehensive compliance reports for auditing and governance.
+
+**Parameters:**
+- `namespace` (string, optional): Specific namespace (default: all)
+- `deployment` (string, optional): Specific deployment (default: all)
+- `format` (enum, optional): "summary", "detailed", or "csv"
+- `compliance` (string, optional): Compliance framework ("SOC2", "HIPAA", etc.)
+
+**Example Response:**
+```
+📊 Compliance Report - Production Environment
+
+🏢 Organization: ACME Corporation
+📅 Generated: 2024-01-15T10:30:00Z
+🎯 Scope: All deployments in production namespace
+📋 Framework: SOC2 Type II
+
+📈 Overall Compliance: 92% (156/170 total checks)
+
+🔒 Security Compliance: 95% (38/40 checks)
+├── Security contexts configured: 38/40 deployments
+├── Non-root users enforced: 40/40 deployments  
+├── Read-only filesystems: 35/40 deployments
+└── Network policies applied: 38/40 deployments
+
+🏢 Governance Compliance: 88% (35/40 checks)
+├── Required labels present: 35/40 deployments
+├── Cost center tracking: 35/40 deployments
+├── Team ownership defined: 40/40 deployments
+└── Environment classification: 35/40 deployments
+
+⚠️ Top Violations:
+1. Missing read-only filesystem (5 deployments)
+2. Incomplete labeling strategy (5 deployments)
+3. Resource limits not optimized (3 deployments)
+
+🔧 Remediation Summary:
+- Auto-fixable: 8 violations
+- Manual review required: 6 violations
+- Total estimated fix time: 2 hours
+
+📊 Trend Analysis:
+- Compliance improved 12% over last month
+- Security score increased from 83% to 95%
+- New violations decreased by 60%
+```
+
+### 10. list_policy_rules
+
+List and manage available policy rules and their configurations.
+
+**Parameters:**
+- `category` (string, optional): Filter by category ("security", "compliance", etc.)
+- `severity` (string, optional): Filter by severity ("low", "medium", "high", "critical")
+- `enabled` (boolean, optional): Filter by enabled status
+- `policyConfig` (string, optional): Path to external policy configuration
+
+**Example Response:**
+```
+📋 Policy Rules Configuration (13 rules total)
+
+🔒 Security Category (5 rules):
+├── sec-001: Security Context Required [ENABLED] (HIGH)
+│   └ Ensures all containers have security context defined
+├── sec-002: Non-Root User Enforcement [ENABLED] (HIGH)  
+│   └ Prevents containers from running as root user
+├── sec-003: Read-Only Root Filesystem [ENABLED] (MEDIUM)
+│   └ Requires read-only root filesystem for security
+├── sec-004: Image Security Policies [ENABLED] (HIGH)
+│   └ Validates container images from approved registries
+└── sec-005: Network Security Controls [ENABLED] (MEDIUM)
+    └ Ensures proper network policies and service accounts
+
+🏢 Compliance Category (3 rules):
+├── comp-001: Required Labels Present [ENABLED] (MEDIUM)
+├── comp-002: Data Classification [ENABLED] (HIGH)
+└── comp-003: Audit Trail Compliance [ENABLED] (LOW)
+
+⚡ Performance Category (3 rules):
+├── perf-001: Resource Limits Defined [ENABLED] (HIGH)
+├── perf-002: Health Checks Configured [ENABLED] (MEDIUM)  
+└── perf-003: Anti-Affinity Rules [ENABLED] (LOW)
+
+💰 Cost Category (2 rules):
+├── cost-001: Resource Efficiency [ENABLED] (MEDIUM)
+└── cost-002: Idle Resource Detection [ENABLED] (LOW)
+
+🔧 Operations Category (3 rules):
+├── ops-001: Deployment Strategy [ENABLED] (MEDIUM)
+├── ops-002: Configuration Management [ENABLED] (LOW)
+└── ops-003: Monitoring Integration [ENABLED] (MEDIUM)
+
+📊 Configuration Summary:
+- Total Rules: 13
+- Enabled: 13 (100%)
+- Auto-Fix Capable: 8 rules
+- Custom Rules: 0 (using built-in policies)
+
+🔧 Policy Source: Built-in default policies
+💡 Tip: Use POLICY_CONFIG_PATH to load external organization policies
+```
+
 ## � Docker Deployment
 
 ### Available Images
@@ -677,10 +1092,12 @@ npm run docker:compose-dev
 - `NODE_ENV`: Set to `production` for optimized performance
 - `DEBUG`: Set to `1` for verbose logging
 - `KUBECONFIG`: Path to kubeconfig file (when not using in-cluster auth)
+- `POLICY_CONFIG_PATH`: Path to external policy configuration file
 
 ### Volume Mounts
 - `~/.kube:/home/mcp/.kube:ro` - Kubeconfig access (read-only)
-- `./config:/app/config:ro` - Additional configuration files
+- `./config:/app/config:ro` - Built-in configuration files
+- `./policies:/app/policies:ro` - External policy configuration files
 
 ### Security Considerations
 - Runs as non-root user (`mcp:1001`)
@@ -698,6 +1115,7 @@ kind: ClusterRole
 metadata:
   name: mcp-k8s-deployment-manager
 rules:
+# Core deployment management
 - apiGroups: ["apps"]
   resources: ["deployments", "replicasets"]
   verbs: ["get", "list", "watch", "update", "patch"]
@@ -707,6 +1125,51 @@ rules:
 - apiGroups: [""]
   resources: ["pods/log"]
   verbs: ["get"]
+
+# Policy as Code requirements
+- apiGroups: [""]
+  resources: ["namespaces", "services", "secrets"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["networking.k8s.io"]
+  resources: ["networkpolicies"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["policy"]
+  resources: ["podsecuritypolicies"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["rbac.authorization.k8s.io"]
+  resources: ["roles", "rolebindings", "clusterroles", "clusterrolebindings"]
+  verbs: ["get", "list", "watch"]
+
+# For auto-remediation (optional - can be restricted in production)
+- apiGroups: ["apps"]
+  resources: ["deployments"]
+  verbs: ["update", "patch"]
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["create", "update", "patch"]
+```
+
+### 🔐 Production RBAC Considerations
+
+**For Policy Evaluation Only (Read-Only):**
+```yaml
+# Restrict to read-only for production policy checking
+rules:
+- apiGroups: ["*"]
+  resources: ["*"]  
+  verbs: ["get", "list", "watch"]  # No write permissions
+```
+
+**For Development/Auto-Fix Environments:**
+```yaml  
+# Allow auto-remediation in development
+rules:
+- apiGroups: ["apps"]
+  resources: ["deployments"]
+  verbs: ["get", "list", "watch", "update", "patch"]
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["get", "list", "watch", "create", "update", "patch"]
 ```
 
 ## 🐛 Troubleshooting

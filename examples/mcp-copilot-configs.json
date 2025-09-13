@@ -1,0 +1,32 @@
+{
+  "mcpServers": {
+    "k8s-deployment-server-builtin": {
+      "command": "docker",
+      "args": [
+        "run", "--rm", "-i",
+        "-v", "${HOME}/.kube:/home/mcp/.kube:ro",
+        "k8s-mcp-server:latest"
+      ]
+    },
+    "k8s-deployment-server-custom": {
+      "command": "docker",
+      "args": [
+        "run", "--rm", "-i",
+        "-v", "${HOME}/.kube:/home/mcp/.kube:ro",
+        "-v", "${PWD}/test-policy.json:/app/test-policy.json:ro",
+        "-e", "POLICY_CONFIG_PATH=/app/test-policy.json",
+        "k8s-mcp-server:latest"
+      ]
+    },
+    "k8s-deployment-server-production": {
+      "command": "docker",
+      "args": [
+        "run", "--rm", "-i",
+        "-v", "${HOME}/.kube:/home/mcp/.kube:ro",
+        "-v", "${PWD}/config:/app/config:ro",
+        "-e", "POLICY_CONFIG_PATH=/app/config/policies/production.json",
+        "k8s-mcp-server:latest"
+      ]
+    }
+  }
+}

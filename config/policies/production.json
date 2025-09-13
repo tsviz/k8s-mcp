@@ -1,0 +1,162 @@
+{
+  "organization": {
+    "name": "ACME Corporation",
+    "environment": "production",
+    "compliance": ["SOC2", "ISO27001"]
+  },
+  "global": {
+    "enforcement": "advisory",
+    "autoFix": false,
+    "excludedNamespaces": ["kube-system", "kube-public", "kube-node-lease"]
+  },
+  "categories": {
+    "security": {
+      "enabled": true,
+      "enforcement": "strict",
+      "autoFix": true
+    },
+    "compliance": {
+      "enabled": true,
+      "enforcement": "strict",
+      "autoFix": false
+    },
+    "performance": {
+      "enabled": true,
+      "enforcement": "advisory",
+      "autoFix": true
+    },
+    "cost": {
+      "enabled": true,
+      "enforcement": "advisory",
+      "autoFix": false
+    },
+    "operations": {
+      "enabled": true,
+      "enforcement": "advisory",
+      "autoFix": true
+    }
+  },
+  "ruleOverrides": {
+    "sec-001": {
+      "enabled": true,
+      "severity": "critical",
+      "enforcement": "strict"
+    },
+    "sec-002": {
+      "enabled": true,
+      "severity": "critical",
+      "enforcement": "strict"
+    },
+    "comp-001": {
+      "enabled": true,
+      "severity": "high",
+      "enforcement": "strict"
+    }
+  },
+  "customRules": [
+    {
+      "id": "acme-001",
+      "name": "ACME Approved Images Only",
+      "description": "All images must come from ACME's approved registry",
+      "severity": "high",
+      "category": "compliance",
+      "enabled": true,
+      "scope": "deployment",
+      "conditions": [
+        {
+          "field": "spec.template.spec.containers[*].image",
+          "operator": "regex_match",
+          "value": "^registry\\.acme\\.com/",
+          "description": "Images must come from ACME registry"
+        }
+      ],
+      "actions": [
+        {
+          "type": "deny",
+          "message": "Only images from registry.acme.com are allowed in production"
+        }
+      ],
+      "metadata": {
+        "owner": "security-team",
+        "contact": "security@acme.com"
+      }
+    },
+    {
+      "id": "acme-002",
+      "name": "Required Business Labels",
+      "description": "Deployments must have cost center and team labels",
+      "severity": "medium",
+      "category": "operations",
+      "enabled": true,
+      "scope": "deployment",
+      "conditions": [
+        {
+          "field": "metadata.labels.cost-center",
+          "operator": "exists",
+          "value": true,
+          "description": "Cost center label is required for billing"
+        },
+        {
+          "field": "metadata.labels.team",
+          "operator": "exists",
+          "value": true,
+          "description": "Team label is required for ownership tracking"
+        }
+      ],
+      "actions": [
+        {
+          "type": "warn",
+          "message": "Missing required business labels for proper cost allocation and ownership"
+        }
+      ]
+    },
+    {
+      "id": "acme-003",
+      "name": "Production Resource Limits",
+      "description": "Production workloads must have appropriate resource limits",
+      "severity": "high",
+      "category": "performance",
+      "enabled": true,
+      "scope": "deployment",
+      "conditions": [
+        {
+          "field": "spec.template.spec.containers[*].resources.limits.memory",
+          "operator": "exists",
+          "value": true,
+          "description": "Memory limits are required in production"
+        },
+        {
+          "field": "spec.template.spec.containers[*].resources.limits.cpu",
+          "operator": "exists",
+          "value": true,
+          "description": "CPU limits are required in production"
+        },
+        {
+          "field": "spec.template.spec.containers[*].resources.limits.memory",
+          "operator": "less_than",
+          "value": "8Gi",
+          "description": "Memory limits should not exceed 8Gi without approval"
+        }
+      ],
+      "actions": [
+        {
+          "type": "deny",
+          "message": "Production workloads require proper resource limits for stability",
+          "autoFix": true,
+          "fixAction": "add_production_resource_limits"
+        }
+      ]
+    }
+  ],
+  "notifications": {
+    "slack": {
+      "webhookUrl": "https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK",
+      "channel": "#platform-alerts",
+      "severityLevels": ["high", "critical"]
+    },
+    "email": {
+      "recipients": ["platform-team@acme.com", "security@acme.com"],
+      "severityLevels": ["critical"]
+    }
+  }
+}

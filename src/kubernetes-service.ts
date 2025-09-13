@@ -123,6 +123,11 @@ export class KubernetesService {
     this.kc = new k8s.KubeConfig();
   }
 
+  // Expose kubeconfig for policy engine
+  getKubeConfig(): k8s.KubeConfig {
+    return this.kc;
+  }
+
   async initialize(): Promise<void> {
     try {
       // Load kubeconfig from default locations

@@ -10,6 +10,7 @@ services:
     environment:
       - NODE_ENV=production
       - DEBUG=0
+      - POLICY_CONFIG_PATH=/app/config/policies/production.json
     volumes:
       # Mount kubeconfig for Kubernetes access
       - ~/.kube:/home/mcp/.kube:ro

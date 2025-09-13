@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "k8s-mcp-dev-policy": {
+      "command": "docker",
+      "args": [
+        "run", "--rm", "-i",
+        "-v", "${HOME}/.kube:/home/mcp/.kube:ro",
+        "-v", "${PWD}/test-policy.json:/app/test-policy.json:ro",
+        "-e", "POLICY_CONFIG_PATH=/app/test-policy.json",
+        "k8s-mcp-server:dev_policy_engine_latest"
+      ]
+    }
+  }
+}
