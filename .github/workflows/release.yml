@@ -133,17 +133,20 @@ jobs:
             PREV_TAG=$(git rev-list --max-parents=0 HEAD)
           fi
           
-          # Generate changelog
-          echo "## Changes" > CHANGELOG.md
-          echo "" >> CHANGELOG.md
-          git log --pretty=format:"- %s (%h)" $PREV_TAG..HEAD >> CHANGELOG.md
+          # Generate changelog content
+          CHANGELOG_CONTENT=$(cat << 'CHANGELOG_END'
+          ## Changes
           
-          # Set output with proper delimiter
-          {
-            echo 'changelog<<CHANGELOG_EOF'
-            cat CHANGELOG.md
-            echo 'CHANGELOG_EOF'
-          } >> $GITHUB_OUTPUT
+          CHANGELOG_END
+          )
+          
+          # Add git log to changelog
+          CHANGELOG_CONTENT="${CHANGELOG_CONTENT}$(git log --pretty=format:"- %s (%h)" $PREV_TAG..HEAD)"
+          
+          # Set output using environment file method
+          echo "changelog<<CHANGELOG_DELIMITER" >> "$GITHUB_OUTPUT"
+          echo "$CHANGELOG_CONTENT" >> "$GITHUB_OUTPUT"
+          echo "CHANGELOG_DELIMITER" >> "$GITHUB_OUTPUT"
 
       - name: 🎉 Create GitHub Release
         uses: softprops/action-gh-release@v1
