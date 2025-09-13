@@ -709,11 +709,13 @@ export class PolicyEngine {
         };
       
       case 'regex_match':
-        const regex = new RegExp(condition.value);
-        return { 
-          passed: regex.test(String(fieldValue)),
-          currentValue: fieldValue
-        };
+        {
+          const regex = new RegExp(condition.value);
+          return { 
+            passed: regex.test(String(fieldValue)),
+            currentValue: fieldValue
+          };
+        }
       
       case 'exists':
         return { 
