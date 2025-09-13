@@ -138,10 +138,12 @@ jobs:
           echo "" >> CHANGELOG.md
           git log --pretty=format:"- %s (%h)" $PREV_TAG..HEAD >> CHANGELOG.md
           
-          # Set output
-          echo "changelog<<EOF" >> $GITHUB_OUTPUT
-          cat CHANGELOG.md >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          # Set output with proper delimiter
+          {
+            echo 'changelog<<CHANGELOG_EOF'
+            cat CHANGELOG.md
+            echo 'CHANGELOG_EOF'
+          } >> $GITHUB_OUTPUT
 
       - name: 🎉 Create GitHub Release
         uses: softprops/action-gh-release@v1
