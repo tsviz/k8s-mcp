@@ -3,6 +3,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { z } from "zod";
 import { KubernetesService } from "./kubernetes-service.js";
 import { PolicyEngine } from "./policy-engine.js";
+import { parseIntent } from "./nl-intent.js";
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -35,10 +36,26 @@ async function main() {
   await k8sService.initialize();
 
   // Initialize Policy Engine with optional configuration
-  const policyConfigPath = process.env.POLICY_CONFIG_PATH || 
-                           process.env.NODE_ENV === 'production' ? './config/policies/production.json' :
-                           process.env.NODE_ENV === 'development' ? './config/policies/development.json' :
-                           undefined;
+  // Determine policy configuration path.
+  // NOTE: The previous implementation had an operator precedence bug:
+  //   envVar || condition ? a : b
+  // is parsed as (envVar || condition) ? a : b, ignoring the provided env var value.
+  // We wrap the fallback ternary chain in parentheses so the explicit POLICY_CONFIG_PATH wins when set.
+  const policyConfigPath = process.env.POLICY_CONFIG_PATH || (
+    process.env.NODE_ENV === 'production'
+      ? './config/policies/production.json'
+      : process.env.NODE_ENV === 'development'
+        ? './config/policies/development.json'
+        : undefined
+  );
+
+  if (process.env.POLICY_CONFIG_PATH) {
+    console.error(`🧩 Using policy config from explicit path: ${process.env.POLICY_CONFIG_PATH}`);
+  } else if (policyConfigPath) {
+    console.error(`🧩 Using policy config inferred from NODE_ENV=${process.env.NODE_ENV}: ${policyConfigPath}`);
+  } else {
+    console.error('🧩 No policy configuration path provided; using built-in defaults only.');
+  }
   
   const policyEngine = new PolicyEngine(k8sService.getKubeConfig(), policyConfigPath);
 
@@ -974,7 +991,7 @@ ${rule.metadata ? `- 📋 **Metadata**: ${Object.entries(rule.metadata).map(([k,
       description: "Analyzes violations to recommend rule overrides (enable/disable/strict/advisory)",
       inputSchema: {
         namespace: z.string().optional().describe('Namespace to analyze (defaults to all)'),
-        minOccurrences: z.number().optional().describe('Minimum repeated violations per rule to include (default 2)')
+  minOccurrences: z.number().optional().describe('Minimum repeated violations per rule to include (default 2)')
       }
     },
     async ({ namespace, minOccurrences = 2 }) => {
@@ -1008,6 +1025,58 @@ ${rule.metadata ? `- 📋 **Metadata**: ${Object.entries(rule.metadata).map(([k,
       } catch (error) {
         return { content: [{ type: 'text', text: `❌ Error generating suggestions: ${error instanceof Error ? error.message : 'Unknown error'}` }], isError: true };
       }
+    }
+  );
+
+  // Tool X: List Tools (meta discovery)
+  server.registerTool(
+    "list_tools",
+    {
+      title: "List Available MCP Tools",
+      description: "Enumerates all registered tools with descriptions, input schema fields, and example usage suggestions.",
+  inputSchema: { filter: z.string().optional().describe("Optional substring to filter tools by name") }
+    },
+    async ({ filter }) => {
+      // Access server internals: server.tools is not part of public SDK types.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const internalTools: Map<string, any> | undefined = (server as any).tools;
+      const toolEntries: Array<[string, any]> = internalTools ? Array.from(internalTools.entries()) : [];
+      const filtered = filter ? toolEntries.filter(([name]) => name.includes(filter)) : toolEntries;
+      const rows = filtered.map(([name, tool]) => {
+        const params = tool?.inputSchema?.shape ? Object.keys(tool.inputSchema.shape) : [];
+        const paramDocs = params.map(p => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const schema: any = tool.inputSchema.shape[p];
+          const type = schema?._def?.typeName || 'unknown';
+          const desc = schema?._def?.description || '';
+          return `  - ${p}: ${type}${desc ? ` – ${desc}` : ''}`;
+        }).join('\n');
+        const exampleArgs = params.slice(0,3).reduce((acc, p) => ({ ...acc, [p]: '...' }), {} as Record<string,string>);
+        const example = params.length ? `{"tool":"${name}","args":${JSON.stringify(exampleArgs)}}` : `{"tool":"${name}"}`;
+        return `**${name}**\n${tool.description || ''}\n${paramDocs ? paramDocs + '\n' : ''}Example: ${example}`;
+      });
+      return { content: [{ type: 'text', text: `🧰 Available Tools (${rows.length}${filter ? ` filtered by '${filter}'` : ''})\n\n${rows.join('\n\n')}` }] };
+    }
+  );
+
+  // Natural Language Command Router
+  server.registerTool(
+    "natural_language_command",
+    {
+      title: "Natural Language Command",
+      description: "Parse a free-form natural language request and map it to an MCP tool invocation.",
+      inputSchema: { query: z.string().describe("User natural language instruction") }
+    },
+    async ({ query }) => {
+      const parsed = parseIntent(query);
+      if (parsed.intent === 'unknown') {
+        return { content: [{ type: 'text', text: `❓ Unable to map request. Suggestions: ${parsed.alternatives?.join(', ')}` }] };
+      }
+      if (parsed.missing && parsed.missing.length) {
+        return { content: [{ type: 'text', text: `ℹ️ Detected intent: ${parsed.intent}\nMissing required parameters: ${parsed.missing.join(', ')}\nProvide them, e.g.: \n${parsed.missing.map(m => `${m}=<value>`).join(' ')}\nParsed so far: ${JSON.stringify(parsed.params)}` }] };
+      }
+      // Echo back the structured call suggestion (execution left to client to avoid implicit side effects).
+      return { content: [{ type: 'text', text: `✅ Intent: ${parsed.intent}\nConfidence: ${(parsed.confidence*100).toFixed(1)}%\nParameters: ${JSON.stringify(parsed.params)}\nYou can now invoke '${parsed.intent}' with these args.` }] };
     }
   );
 

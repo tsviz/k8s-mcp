@@ -6,6 +6,42 @@
 
 A Model Context Protocol (MCP) server that provides AI-driven automation tools for managing Kubernetes deployments with integ### 📚 **Summary**
 
+## 🔎 Tool Discoverability & Quick Start
+
+Working through a chat interface and unsure what the server can do? Use the built-in meta discovery features:
+
+1. Runtime enumeration: invoke the `list_tools` tool (no args) to get a categorized list with parameter hints and sample invocation objects.
+2. Filter tools: `list_tools` accepts an optional `filter` argument to narrow by substring (e.g. `{"filter":"deploy"}`).
+3. Static catalog: see [`TOOLS.md`](TOOLS.md) for an at-a-glance summary of categories, usage sequences, and best practices.
+
+Recommended first interaction sequence:
+```
+list_tools → get_cluster_info → list_namespaces → list_deployments
+```
+
+From there branch into scaling, deployment, policy evaluation, or compliance reporting as needed.
+
+### 🗣 Natural Language Interaction
+
+You can issue plain English requests via the `natural_language_command` tool when using Copilot / an MCP-aware client.
+
+Examples:
+```
+Scale deployment cart-api in namespace shop to 5 replicas
+Deploy image ghcr.io/example/service:v1.4.0 to deployment checkout in namespace prod
+Show me the status of deployment payments in ns prod
+Generate a compliance report for namespace finance
+Evaluate policies for deployment api-gateway in ns edge
+```
+
+What it does:
+- Parses intent → identifies target MCP tool
+- Extracts parameters (namespace, deployment, image, replicas, etc.)
+- Returns a structured call suggestion (it does not automatically perform write actions to keep you in control)
+
+If something’s missing you’ll get a list of required fields to supply. For unrecognized queries it suggests alternatives (e.g., `list_tools`).
+
+
 The k8s MCP server is a **powerful diagnostic and emergency response tool** that enhances your DevOps capabilities. However, it should **complement**, not **replace**, your established CI/CD pipelines and change management processes.
 
 **Think of it as:**
