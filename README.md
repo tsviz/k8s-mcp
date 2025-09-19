@@ -1,10 +1,93 @@
-# Kubernetes Deployment MCP Server
+# Kubernetes Management for GitHub Copilot Chat
 
 ![Build Status](https://github.com/tsviz/k8s-mcp/workflows/🚀%20Release%20Docker%20Images/badge.svg)
 ![License](https://img.shields.io/github/license/tsviz/k8s-mcp)
 ![Version](https://img.shields.io/github/v/release/tsviz/k8s-mcp)
 
-A Model Context Protocol (MCP) server that provides AI-driven automation tools for managing Kubernetes deployments with integ### 📚 **Summary**
+**Transform your Kubernetes operations with AI-powered conversations.** This Model Context Protocol (MCP) server connects GitHub Copilot Chat to your Kubernetes clusters, enabling natural language management of deployments, security policies, and operational tasks.
+
+## 🎯 What This Does
+
+Imagine having a Kubernetes expert right inside GitHub Copilot Chat who can:
+
+- **🔍 Diagnose Issues**: "Why is my Spring Boot app restarting frequently?"
+- **⚡ Scale Applications**: "Scale my API to handle Black Friday traffic"
+- **🛡️ Fix Security**: "Show me all security violations and auto-fix what you can"
+- **📊 Generate Reports**: "Create a compliance report for my production namespace"
+- **🚑 Emergency Response**: "URGENT: Rollback the latest deployment, users reporting errors!"
+
+Instead of running multiple `kubectl` commands and manually analyzing YAML files, you just ask GitHub Copilot Chat what you need.
+
+## ✨ Key Value Propositions
+
+### 🗣️ **Natural Language Operations**
+```
+You: "Which deployments are over-provisioned and wasting resources?"
+
+Copilot: Let me analyze your cluster resources...
+┌─────────────────┬─────────────┬─────────────┬────────────┐
+│ Deployment      │ CPU Usage   │ Memory Usage│ Waste Score│
+├─────────────────┼─────────────┼─────────────┼────────────┤
+│ api-gateway     │ 15% (2 cores)│ 23% (4GB)  │ High       │
+│ user-service    │ 8% (1 core) │ 12% (2GB)  │ Very High  │
+│ payment-service │ 45% (1 core)│ 67% (1GB)  │ Good       │
+└─────────────────┴─────────────┴─────────────┴────────────┘
+
+I can automatically optimize these resource allocations. Would you like me to:
+1. Scale down over-provisioned deployments
+2. Adjust resource limits to match actual usage
+3. Generate cost savings report
+```
+
+### 🎯 **Expert-Level Analysis**
+```
+You: "Audit my cluster for GDPR compliance requirements"
+
+Copilot: Running GDPR compliance analysis across your cluster...
+
+🔍 GDPR Compliance Report:
+┌─ 🛡️ Data Protection ─────────────────────┐
+│ ✅ Encryption at rest: Enabled          │
+│ ❌ Data retention policies: Missing      │
+│ ⚠️  Personal data labels: Incomplete     │
+└────────────────────────────────────────────┘
+
+Critical Issues Found:
+• user-service: Stores PII without data classification labels
+• logs-collector: Retains logs beyond 90-day requirement
+• auth-service: Missing data encryption in transit
+
+Auto-fixable: 2/3 issues
+Manual review needed: Data retention policy setup
+
+Would you like me to apply the auto-fixes?
+```
+
+### � **Instant Emergency Response**
+```
+You: "My app is getting OOMKilled errors - help me fix this now!"
+
+Copilot: Analyzing your memory issues...
+
+🚨 Critical Memory Analysis for payment-service:
+┌─ Current State ──────────────────────────┐
+│ Memory Limit: 512MB                      │
+│ Memory Usage: 487MB (95% utilization)    │
+│ OOMKilled Events: 23 in last hour        │
+│ Pod Restarts: 47 times                   │
+└────────────────────────────────────────────┘
+
+🔧 Immediate Fix:
+I'll increase memory limit to 1GB and add monitoring alerts.
+This should resolve the OOMKilled errors immediately.
+
+Applied changes:
+✅ Memory limit: 512MB → 1GB
+✅ Added memory monitoring alerts
+✅ Triggered rolling restart with new limits
+
+Monitor: kubectl get pods -l app=payment-service
+```
 
 ## 🔎 Tool Discoverability & Quick Start
 
@@ -56,60 +139,452 @@ The k8s MCP server is a **powerful diagnostic and emergency response tool** that
 
 **Remember**: With great power comes great responsibility. Use wisely! 🦸‍♂️
 
-## 🏛️ Policy as Code Configuration
+## 🚀 Real-World Scenarios
 
-### Built-in Policy Rules
+### 🛡️ **Security & Compliance Deep Dive**
 
-The MCP server includes **13+ comprehensive policy rules** across 5 categories:
+<details>
+<summary><strong>"Show me all security violations across my cluster and auto-fix what you can"</strong></summary>
 
-| Category | Rules | Description |
-|----------|-------|-------------|
-| 🔒 **Security** | 5 rules | Security contexts, image policies, network security |
-| 🏢 **Compliance** | 3 rules | Required labels, data classification, audit trails |
-| ⚡ **Performance** | 3 rules | Resource limits, health checks, availability |
-| 💰 **Cost** | 2 rules | Resource efficiency, idle resource detection |
-| 🔧 **Operations** | 3+ rules | Deployment strategies, configuration management |
+```
+You: Show me all security violations across my cluster and auto-fix what you can
 
-### External Policy Configuration
+Copilot: Running comprehensive security analysis across all namespaces...
 
-**📁 Policy Storage Options:**
-- **Built-in**: Default policies in `src/policy-engine.ts`
-- **External**: JSON files in `config/policies/` directory
-- **Organization-specific**: Custom policy files for your environment
+🔒 Security Violation Report:
+┌─ Critical Issues (3) ─────────────────────┐
+│ • auth-service: Running as root user      │
+│ • api-gateway: No security context        │
+│ • user-db: Privileged container mode      │
+└──────────────────────────────────────────────┘
 
-**🔧 Configuration Methods:**
+┌─ High Issues (5) ─────────────────────────┐
+│ • payment-service: Read-write filesystem  │
+│ • logs-collector: No resource limits      │
+│ • cache-redis: Missing network policies   │
+│ • admin-panel: Dangerous capabilities     │
+│ • webhook-handler: No pod security policy │
+└──────────────────────────────────────────────┘
 
-#### 1. Environment Variable Method
-```json
-{
-  "mcpServers": {
-    "k8s-deployment-server": {
-      "command": "node",
-      "args": ["dist/index.js"],
-      "env": {
-        "POLICY_CONFIG_PATH": "/path/to/your/policies/production.json"
-      }
-    }
-  }
-}
+🔧 Auto-fixing 6/8 violations...
+
+✅ Fixed: auth-service → Added non-root security context
+✅ Fixed: api-gateway → Applied security context template  
+✅ Fixed: payment-service → Set read-only root filesystem
+✅ Fixed: logs-collector → Added resource limits
+✅ Fixed: admin-panel → Removed dangerous capabilities
+✅ Fixed: webhook-handler → Applied pod security standards
+
+⚠️ Manual Review Required:
+• user-db: Privileged mode - needs architecture review
+• cache-redis: Network policy - requires network topology analysis
+
+New Security Score: 94% (was 72%)
 ```
 
-#### 2. Automatic Environment Detection
-```json
-{
-  "mcpServers": {
-    "k8s-deployment-server": {
-      "command": "node", 
-      "args": ["dist/index.js"],
-      "env": {
-        "NODE_ENV": "production"  // Auto-loads config/policies/production.json
-      }
-    }
-  }
-}
+</details>
+
+<details>
+<summary><strong>"Which deployments are running as root and why is that dangerous?"</strong></summary>
+
+```
+You: Which deployments are running as root and why is that dangerous?
+
+Copilot: Scanning all deployments for root user containers...
+
+🚨 Deployments Running as Root:
+┌─────────────────┬───────────┬─────────────────┐
+│ Deployment      │ Namespace │ Risk Level      │
+├─────────────────┼───────────┼─────────────────┤
+│ legacy-app      │ production│ 🔴 Critical     │
+│ admin-tools     │ ops       │ 🟡 High         │
+│ debug-container │ dev       │ 🟠 Medium       │
+└─────────────────┴───────────┴─────────────────┘
+
+⚠️ Why Running as Root is Dangerous:
+
+1. **Container Escape Risk**: Root processes can potentially break out of containers
+2. **Host System Access**: If compromised, attackers gain root access to the host
+3. **Privilege Escalation**: Easier path for attackers to escalate privileges
+4. **File System Damage**: Can modify/delete critical system files
+5. **Compliance Violations**: Fails SOC2, PCI-DSS, and HIPAA requirements
+
+🔧 Remediation Plan:
+
+For legacy-app (CRITICAL):
+• Create non-root user in Dockerfile
+• Set runAsUser: 1001 in security context
+• Test with read-only filesystem
+• Estimated effort: 2-3 hours
+
+Would you like me to auto-fix the security contexts for medium/low risk deployments?
 ```
 
-#### 3. Docker with Policy Volumes
+</details>
+
+<details>
+<summary><strong>"Generate a compliance report for my production namespace"</strong></summary>
+
+```
+You: Generate a compliance report for my production namespace
+
+Copilot: Generating comprehensive compliance report for production namespace...
+
+📊 Production Namespace Compliance Report
+Generated: 2024-01-15 | Framework: SOC2 Type II + CIS Kubernetes
+
+┌─ Overall Compliance Score ─────────────────┐
+│           🎯 87% COMPLIANT                 │
+│     (174 of 200 controls passed)          │
+└──────────────────────────────────────────────┘
+
+🔒 Security Controls: 92% (46/50)
+├─ Identity & Access: ✅ 100% (15/15)
+├─ Network Security: ✅ 95% (19/20)  
+├─ Data Protection: ⚠️  80% (12/15)
+└─ Runtime Security: ✅ 100% (0/0)
+
+🏢 Governance Controls: 85% (42/50)
+├─ Change Management: ✅ 90% (18/20)
+├─ Asset Management: ⚠️  75% (15/20)
+├─ Incident Response: ✅ 90% (9/10)
+
+⚠️ Top Non-Compliance Issues:
+1. Missing data classification labels (8 deployments)
+2. Incomplete backup configurations (3 databases)
+3. Missing disaster recovery procedures (5 services)
+
+📈 30-Day Trend:
+• Security compliance: 78% → 92% (+14%)
+• Governance compliance: 71% → 85% (+14%)
+• Zero critical violations introduced
+• 23 previously identified issues resolved
+
+🎯 Next Steps:
+1. Address data classification gaps (Est. 4 hours)
+2. Implement automated backup validation
+3. Document disaster recovery procedures
+```
+
+</details>
+
+</details>
+
+### ⚡ **Resource Optimization & Performance**
+
+<details>
+<summary><strong>"Which deployments are over-provisioned and wasting resources?"</strong></summary>
+
+```
+You: Which deployments are over-provisioned and wasting resources?
+
+Copilot: Analyzing resource utilization across all deployments...
+
+💰 Resource Waste Analysis:
+┌─────────────────┬─────────────┬─────────────┬─────────────┬─────────────┐
+│ Deployment      │ CPU Waste   │ Memory Waste│ Monthly Cost│ Savings     │
+├─────────────────┼─────────────┼─────────────┼─────────────┼─────────────┤
+│ user-service    │ 85% unused  │ 78% unused  │ $340        │ $280        │
+│ api-gateway     │ 72% unused  │ 65% unused  │ $680        │ $450        │
+│ search-engine   │ 45% unused  │ 80% unused  │ $920        │ $420        │
+│ analytics-api   │ 90% unused  │ 88% unused  │ $450        │ $380        │
+│ notification    │ 67% unused  │ 45% unused  │ $230        │ $140        │
+└─────────────────┴─────────────┴─────────────┴─────────────┴─────────────┘
+
+🎯 Total Monthly Savings Potential: $1,670
+
+📊 Resource Optimization Recommendations:
+
+user-service:
+  Current: CPU: 2 cores, Memory: 4GB
+  Optimal:  CPU: 0.3 cores, Memory: 1GB
+  Savings:  $280/month (82% reduction)
+
+api-gateway:
+  Current: CPU: 4 cores, Memory: 8GB  
+  Optimal:  CPU: 1.2 cores, Memory: 3GB
+  Savings:  $450/month (66% reduction)
+
+🔧 Auto-Optimization Available:
+✅ Can safely optimize 4/5 deployments
+⚠️  search-engine needs performance testing
+
+Would you like me to apply these optimizations?
+I'll do it gradually to ensure no performance impact.
+```
+
+</details>
+
+<details>
+<summary><strong>"Show me CPU and memory usage patterns across all my apps"</strong></summary>
+
+```
+You: Show me CPU and memory usage patterns across all my apps
+
+Copilot: Analyzing 7-day resource usage patterns...
+
+📈 CPU Usage Patterns:
+┌─ Peak Hours (9AM-5PM EST) ─────────────────┐
+│ api-gateway:     45-78% (heavy morning load)│
+│ user-service:    23-45% (steady usage)     │
+│ payment-service: 67-89% (lunch peak)       │
+│ search-engine:   12-34% (evening spikes)   │
+└──────────────────────────────────────────────┘
+
+┌─ Off-Peak Hours (6PM-8AM EST) ─────────────┐
+│ api-gateway:     8-15% (can scale down)    │
+│ user-service:    5-12% (maintenance window)│
+│ payment-service: 15-23% (minimal traffic)  │
+│ search-engine:   3-8% (background indexing)│
+└──────────────────────────────────────────────┘
+
+🧠 Memory Usage Patterns:
+• Most apps: Steady memory consumption
+• payment-service: Memory leaks detected (grows 2MB/hour)
+• search-engine: Spiky memory during index rebuilds
+
+💡 Smart Scaling Opportunities:
+1. Scale down api-gateway 60% during off-peak hours
+2. Implement memory alerts for payment-service  
+3. Add memory limits to prevent search-engine spikes
+
+Estimated savings: $890/month with smart auto-scaling
+```
+
+</details>
+
+</details>
+
+### 🔧 **Operational Excellence**
+
+<details>
+<summary><strong>"Which deployments are missing health checks and how critical is that?"</strong></summary>
+
+```
+You: Which deployments are missing health checks and how critical is that?
+
+Copilot: Analyzing health check configurations across all deployments...
+
+🏥 Health Check Analysis:
+┌─────────────────┬───────────────┬─────────────────┬─────────────────┐
+│ Deployment      │ Liveness      │ Readiness       │ Risk Level      │
+├─────────────────┼───────────────┼─────────────────┼─────────────────┤
+│ payment-service │ ❌ Missing    │ ❌ Missing      │ 🔴 Critical     │
+│ user-auth       │ ✅ Configured │ ❌ Missing      │ 🟡 High         │
+│ notification    │ ❌ Missing    │ ✅ Configured   │ 🟠 Medium       │
+│ logs-collector  │ ❌ Missing    │ ❌ Missing      │ 🟢 Low          │
+└─────────────────┴───────────────┴─────────────────┴─────────────────┘
+
+🚨 Critical Impact Analysis:
+
+payment-service (CRITICAL RISK):
+• No automatic failure detection
+• Failed pods continue receiving traffic
+• Manual intervention required for recovery
+• Estimated downtime per incident: 15-45 minutes
+• Business impact: Payment processing failures
+
+💡 Real Consequences:
+• Last month: 3 incidents of undetected failures
+• Average recovery time: 28 minutes
+• Lost revenue: ~$12,000 per incident
+
+🔧 Auto-Fix Available:
+I can add standard health checks for all missing deployments:
+
+payment-service:
+  Liveness:  HTTP GET /health every 30s
+  Readiness: HTTP GET /ready every 10s
+  
+user-auth:
+  Readiness: HTTP GET /status every 5s
+
+Would you like me to apply these health checks now?
+```
+
+</details>
+
+</details>
+
+### 🚑 **Troubleshooting & Debugging**
+
+<details>
+<summary><strong>"Why is my Spring Boot app pod restarting frequently?"</strong></summary>
+
+```
+You: Why is my Spring Boot app pod restarting frequently?
+
+Copilot: Analyzing restart patterns for your Spring Boot application...
+
+🔍 Restart Analysis for spring-api:
+┌─ Restart Statistics (Last 24h) ───────────┐
+│ Total Restarts: 47                        │
+│ Restart Frequency: Every 18 minutes       │
+│ Longest Uptime: 2h 15m                    │
+│ Average Uptime: 22 minutes                │
+└──────────────────────────────────────────────┘
+
+🚨 Root Cause Analysis:
+
+1. **Memory Issues (Primary)**:
+   • OOMKilled: 31 times (66% of restarts)
+   • Memory limit: 512MB
+   • Peak usage: 498MB (97% utilization)
+   • Memory leak suspected in session management
+
+2. **Database Connection Pool**:
+   • Connection timeouts: 12 occurrences
+   • Pool exhaustion every ~30 minutes
+   • Max connections: 20 (too low for load)
+
+3. **Startup Problems**:
+   • Failed health checks: 4 times
+   • Liquibase lock contention on startup
+   • Average startup time: 89 seconds
+
+🔧 Immediate Fixes Applied:
+✅ Increased memory limit: 512MB → 1.5GB
+✅ Expanded connection pool: 20 → 50 connections
+✅ Added JVM heap dump on OOM
+✅ Optimized startup health check timing
+
+📊 Expected Results:
+• 90% reduction in OOMKilled restarts
+• Faster startup time (89s → ~35s)
+• Stable uptime: 22min → 6+ hours
+
+Monitor improvements: kubectl get pods -l app=spring-api --watch
+```
+
+</details>
+
+<details>
+<summary><strong>"What's causing high memory usage in my postgres deployment?"</strong></summary>
+
+```
+You: What's causing high memory usage in my postgres deployment?
+
+Copilot: Analyzing PostgreSQL memory usage patterns...
+
+🗄️ PostgreSQL Memory Analysis:
+┌─ Current Memory State ─────────────────────┐
+│ Total Allocated: 3.2GB / 4GB (80%)        │
+│ Shared Buffers: 1.1GB (35%)               │
+│ Work Memory: 890MB (28%)                   │
+│ Connection Memory: 450MB (14%)             │
+│ OS Cache: 760MB (23%)                      │
+└──────────────────────────────────────────────┘
+
+🔍 Memory Usage Breakdown:
+
+1. **Shared Buffers (1.1GB)**:
+   • Configuration: shared_buffers = 1GB
+   • Usage: 95% full (near optimal)
+   • Cache hit ratio: 99.2% (excellent)
+
+2. **Work Memory Per Query (890MB)**:
+   ⚠️  ISSUE: work_mem = 128MB × 7 concurrent sorts
+   • Large sort operations from analytics queries
+   • Temporary file usage: 2.3GB (inefficient)
+
+3. **Connection Overhead (450MB)**:
+   ⚠️  ISSUE: 85 active connections (too many)
+   • Each connection: ~5MB overhead
+   • Many idle connections from connection leaks
+
+🔧 Optimization Recommendations:
+
+Immediate Fixes:
+1. Reduce work_mem: 128MB → 64MB (prevents memory spikes)
+2. Implement connection pooling (pgbouncer)
+3. Kill idle connections older than 30 minutes
+
+Query Optimization:
+• 3 slow queries consuming 60% of work memory
+• Add missing indexes on analytics tables
+• Optimize daily report generation
+
+Expected Memory Reduction: 800MB (25% improvement)
+```
+
+</details>
+
+</details>
+
+### 🎯 **Advanced Analysis**
+
+<details>
+<summary><strong>"If my cluster was a restaurant, what would the health inspector say?"</strong></summary>
+
+```
+You: If my cluster was a restaurant, what would the health inspector say?
+
+Copilot: 🍽️ Kubernetes Cluster Health Inspection Report
+
+👨‍🍳 **RESTAURANT REVIEW: "Cluster Café"**
+⭐⭐⭐⭐⭐ 4.2/5 stars | Grade: B+ | Some violations found
+
+🧑‍⚖️ **HEALTH INSPECTOR'S FINDINGS:**
+
+┌─ 🚨 CRITICAL VIOLATIONS ──────────────────┐
+│ 🔴 Raw ingredients exposed (running as root)│
+│ 🔴 No hand washing stations (no security ctx)│
+│ 🔴 Unlabeled mystery containers (no labels) │
+└──────────────────────────────────────────────┘
+
+┌─ ⚠️  MAJOR VIOLATIONS ────────────────────┐
+│ � Food sitting out too long (no health checks)│
+│ 🟡 Overcrowded kitchen (resource limits)   │
+│ 🟡 No fire suppression (missing monitoring)│
+└──────────────────────────────────────────────┘
+
+👨‍🍳 **WHAT THE CHEF (DevOps) SAYS:**
+"We've been so busy serving customers, we forgot basic safety! 
+The payment-service has been running as root since opening day,
+and half our containers don't even have proper labels."
+
+🛡️ **HEALTH INSPECTOR'S ORDERS:**
+1. **Immediate shutdown** of payment-service until security fixed
+2. **30-day improvement plan** for all root containers  
+3. **Weekly health checks** must be implemented
+4. **Full reinspection** in 2 weeks
+
+📋 **IMPROVEMENT CHECKLIST:**
+□ Install proper security contexts (hand washing stations)
+□ Add resource limits (portion control)
+□ Implement health checks (food temperature monitoring)
+□ Label all containers (ingredient labeling)
+□ Add monitoring alerts (smoke detectors)
+
+**REINSPECTION PREDICTION:** ⭐⭐⭐⭐⭐ 4.8/5 stars
+"With these fixes, Cluster Café will be a 5-star establishment!"
+
+Would you like me to start implementing the health inspector's orders? 🧑‍🍳👮‍♂️
+```
+
+</details>
+
+</details>
+
+## 🚀 Quick Start
+
+### Prerequisites
+- Docker installed
+- Kubernetes cluster access
+- GitHub Copilot Chat enabled
+
+### 1-Minute Setup
+## 🚀 Quick Start
+
+### Prerequisites
+- Docker installed
+- Kubernetes cluster access
+- GitHub Copilot Chat enabled
+
+### 1-Minute Setup
+
+**Step 1**: Add to your GitHub Copilot Chat MCP configuration:
+
 ```json
 {
   "mcpServers": {
@@ -117,6 +592,52 @@ The MCP server includes **13+ comprehensive policy rules** across 5 categories:
       "command": "docker",
       "args": [
         "run", "-i", "--rm",
+        "-v", "~/.kube:/home/mcp/.kube:ro",
+        "ghcr.io/tsviz/k8s-mcp:latest"
+      ]
+    }
+  }
+}
+```
+
+**Step 2**: Test the connection in GitHub Copilot Chat:
+
+```
+You: "Show me all deployments in my cluster"
+
+Copilot: Let me check your Kubernetes deployments...
+[Lists all deployments with health status]
+```
+
+**Step 3**: Start using natural language for Kubernetes operations!
+
+### Configuration Options
+
+#### Basic Configuration (Recommended)
+```json
+{
+  "mcpServers": {
+    "k8s-deployment-server": {
+      "command": "docker",
+      "args": [
+        "run", "-i", "--rm",
+        "-v", "~/.kube:/home/mcp/.kube:ro",
+        "ghcr.io/tsviz/k8s-mcp:latest"
+      ]
+    }
+  }
+}
+```
+
+#### With Custom Policies
+```json
+{
+  "mcpServers": {
+    "k8s-deployment-server": {
+      "command": "docker",
+      "args": [
+        "run", "-i", "--rm",
+        "-v", "~/.kube:/home/mcp/.kube:ro",
         "-v", "/path/to/policies:/app/policies:ro",
         "-e", "POLICY_CONFIG_PATH=/app/policies/production.json",
         "ghcr.io/tsviz/k8s-mcp:latest"
@@ -126,278 +647,313 @@ The MCP server includes **13+ comprehensive policy rules** across 5 categories:
 }
 ```
 
-### Policy Templates
-
-**📋 Pre-built Templates:**
-- `config/policies/production.json` - Production environment policies
-- `config/policies/development.json` - Development environment policies  
-- `config/policies/hipaa-compliant.json` - Healthcare compliance (HIPAA)
-- `config/policies/schema.json` - JSON schema for validation
-
-**🏢 Organization Examples:**
+#### Production Environment
 ```json
 {
-  "organization": {
-    "name": "ACME Corporation",
-    "environment": "production",
-    "compliance": ["SOC2", "ISO27001"]
-  },
-  "global": {
-    "enforcement": "strict",
-    "autoFix": false,
-    "excludedNamespaces": ["kube-system"]
-  },
-  "customRules": [
-    {
-      "id": "acme-001",
-      "name": "ACME Approved Images",
-      "description": "Only approved registry images allowed",
-      "severity": "high",
-      "category": "compliance",
-      "conditions": [
-        {
-          "field": "spec.template.spec.containers[*].image",
-          "operator": "regex_match",
-          "value": "^registry\\.acme\\.com/"
-        }
+  "mcpServers": {
+    "k8s-deployment-server": {
+      "command": "docker",
+      "args": [
+        "run", "-i", "--rm",
+        "-v", "~/.kube:/home/mcp/.kube:ro",
+        "-e", "NODE_ENV=production",
+        "ghcr.io/tsviz/k8s-mcp:v1.0.0"
       ]
     }
-  ]
+  }
 }
 ```
 
-**📚 Detailed Documentation:**
-- **Complete Guide**: [`docs/EXTERNAL_POLICY_CONFIG.md`](docs/EXTERNAL_POLICY_CONFIG.md)
-- **Policy as Code**: [`docs/POLICY_AS_CODE.md`](docs/POLICY_AS_CODE.md)
-- **JSON Schema**: [`config/policies/schema.json`](config/policies/schema.json)
+### Alternative Installation Methods
+
+<details>
+<summary><strong>From Source (Development)</strong></summary>
+
+```bash
+git clone https://github.com/tsviz/k8s-mcp.git
+cd k8s-mcp
+npm install
+npm run build
+npm start
+```
+
+Then configure GitHub Copilot Chat:
+```json
+{
+  "mcpServers": {
+    "k8s-deployment-server": {
+      "command": "node",
+      "args": ["dist/index.js"],
+      "cwd": "/path/to/k8s-mcp"
+    }
+  }
+}
+```
+
+</details>
+
+<details>
+<summary><strong>In-Cluster Deployment</strong></summary>
+
+```bash
+kubectl apply -f examples/rbac.yaml
+kubectl apply -f examples/k8s-deployment.yaml
+```
+
+Connect via port-forward:
+```bash
+kubectl port-forward svc/k8s-mcp-server 3000:3000
+```
+
+</details>
+
+## 💬 How to Use with GitHub Copilot Chat
+
+### Natural Language Commands
+
+Instead of remembering complex `kubectl` commands, just tell GitHub Copilot Chat what you want:
+
+```
+✅ "Scale my API to handle more traffic"
+✅ "Show me why my pods are failing"  
+✅ "Fix all security issues automatically"
+✅ "Generate a compliance report for auditors"
+✅ "Deploy version 2.1.0 with zero downtime"
+```
+
+### Getting Started Conversation
+
+```
+You: What can you help me with for Kubernetes?
+
+Copilot: I can help you manage your Kubernetes cluster! Here's what I can do:
+
+🔍 **Diagnostics & Monitoring**
+• Check deployment health and status
+• Analyze resource usage patterns  
+• Identify performance bottlenecks
+• Review pod logs and error patterns
+
+⚙️ **Operations & Management**  
+• Scale deployments up/down
+• Deploy new versions safely
+• Rollback problematic deployments
+• Toggle feature flags
+
+🛡️ **Security & Compliance**
+• Scan for security violations
+• Auto-fix common security issues
+• Generate compliance reports
+• Enforce organizational policies
+
+Try asking me: "Show me the status of all my deployments"
+```
+
+### Common Conversation Patterns
+
+<details>
+<summary><strong>Performance Troubleshooting</strong></summary>
+
+```
+You: My app seems slow, can you investigate?
+
+Copilot: I'll check your deployment health and recent events...
+
+[Runs diagnostic analysis]
+
+Found the issue! Your app is experiencing:
+• Memory pressure (95% utilization)
+• Slow database connections (avg 2.3s)
+• Missing readiness probes causing traffic to failing pods
+
+Would you like me to:
+1. Increase memory limits
+2. Scale up database connections  
+3. Add proper health checks
+```
+
+</details>
+
+<details>
+<summary><strong>Emergency Response</strong></summary>
+
+```
+You: URGENT: Users reporting 500 errors after latest deploy!
+
+Copilot: 🚨 Emergency response initiated!
+
+Analyzing recent deployments...
+• payment-service v2.1.0 deployed 15 minutes ago
+• Error rate spiked from 0.1% to 23%
+• 347 users affected
+
+Executing immediate rollback...
+✅ Rolled back to v2.0.8 (last stable version)
+✅ Error rate dropping: 23% → 3% → 0.2%
+✅ All pods healthy
+
+Incident resolved in 2m 34s. 
+Root cause analysis: New version had database migration issue.
+```
+
+</details>
+
+<details>
+<summary><strong>Capacity Planning</strong></summary>
+
+```
+You: We're expecting 10x traffic for Black Friday. Are we ready?
+
+Copilot: Let me analyze your current capacity and predict needs...
+
+📊 Current Capacity Analysis:
+• API Gateway: Can handle ~2,000 RPS (currently 200 RPS)  
+• Database: 85% connection utilization (near limit)
+• Payment Service: CPU at 45% (room to scale)
+
+📈 Black Friday Projections (10x traffic):
+• Need: 2,000 RPS → 20,000 RPS
+• Bottlenecks identified:
+  1. Database connections (immediate limit)
+  2. Payment service CPU (will hit 450%)
+
+🔧 Recommended Pre-scaling:
+• API Gateway: 3 → 15 replicas  
+• Payment Service: 5 → 25 replicas
+• Database: Enable connection pooling + read replicas
+
+Would you like me to implement these changes gradually?
+```
+
+</details>
+
+## 🛡️ Security & Best Practices
+
+### Production Usage Guidelines
+
+✅ **Recommended for:**
+- Development and testing environments
+- Emergency troubleshooting in production
+- Policy compliance monitoring  
+- Capacity planning and optimization
+
+⚠️ **Use with caution in production:**
+- Always follow your organization's change management procedures
+- Use read-only modes for production clusters when possible
+- Implement proper RBAC restrictions
+- Monitor all changes through audit logs
+
+### Security Best Practices
+
+```yaml
+# Example: Production RBAC (Read-only)
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: mcp-k8s-readonly
+rules:
+- apiGroups: ["*"]
+  resources: ["*"]
+  verbs: ["get", "list", "watch"]  # No write permissions
+```
+
+### Emergency Response Protocol
+
+```
+✅ Use MCP deployment tools when:
+• Declared production incident in progress
+• Standard CI/CD pipeline unavailable
+• Immediate intervention required
+• Proper authorization obtained
+
+❌ Do NOT use for:
+• Regular planned deployments
+• Bypassing approval processes  
+• Unsupervised automated changes
+```
+
+## 🔧 Core Capabilities
+
+This MCP server provides 13 specialized tools for Kubernetes management:
+
+### Deployment Management
+- **get_deployment_status** - Health checks and diagnostics
+- **scale_deployment** - Horizontal scaling with safety checks  
+- **deploy_version** - Safe version deployments with rollout tracking
+- **rollback_deployment** - Emergency rollbacks with revision control
+
+### Operational Tools  
+- **get_cluster_info** - Cluster overview and connection status
+- **list_namespaces** - Namespace inventory with deployment counts
+- **list_deployments** - Deployment catalog with health indicators
+- **get_pod_logs** - Log analysis and debugging support
+- **toggle_feature_flag** - Feature flag management via environment variables
+
+### Policy & Compliance
+- **evaluate_deployment_policies** - Security and compliance scanning
+- **auto_fix_policy_violations** - Automated remediation of common issues
+- **generate_compliance_report** - Audit reports for governance
+- **list_policy_rules** - Policy configuration management
+
+Each tool is designed to work seamlessly with GitHub Copilot Chat's natural language interface.
+
+## 🏛️ Policy Engine Features
+
+### Built-in Policy Categories
+
+| Category | Rules | Examples |
+|----------|-------|----------|
+| 🔒 **Security** | 5 rules | Non-root users, security contexts, image policies |
+| 🏢 **Compliance** | 3 rules | Required labels, data classification, audit trails |
+| ⚡ **Performance** | 3 rules | Resource limits, health checks, availability |
+| 💰 **Cost** | 2 rules | Resource efficiency, idle resource detection |
+| 🔧 **Operations** | 3+ rules | Deployment strategies, configuration management |
 
 ### Auto-Remediation Capabilities
 
-The policy engine can automatically fix common issues:
-
-**🔧 Security Fixes:**
-- Add missing security contexts (non-root user, read-only filesystem)
-- Remove dangerous capabilities and privilege escalation
-- Apply pod security standards automatically
-
-**⚡ Performance Fixes:**
-- Add missing resource limits and requests
-- Configure liveness and readiness probes
-- Apply anti-affinity rules for high availability
-
-**🏢 Compliance Fixes:**
-- Add required organizational labels
-- Apply consistent naming conventions
-- Configure audit logging and monitoringas Code** governance. This server exposes 13 powerful tools for deployment lifecycle management and compliance automation, allowing LLMs to interact with Kubernetes clusters in a secure, governed, and structured way.
-
-## 🚀 Features
-
-### Core Deployment Tools
-
-1. **get_cluster_info** - Get cluster connection and basic information
-2. **list_namespaces** - List all namespaces with deployment counts  
-3. **list_deployments** - List all deployments with health status
-4. **get_deployment_status** - Check deployment health, replica status, conditions, and recent events
-5. **scale_deployment** - Horizontally scale deployments with wait-for-ready support  
-6. **toggle_feature_flag** - Enable/disable feature flags via environment variables or ConfigMaps
-7. **rollback_deployment** - Rollback to previous deployment versions with revision control
-8. **deploy_version** - Deploy specific application versions with rollout tracking
-9. **get_pod_logs** - Retrieve pod logs for debugging and monitoring
-
-### 🏛️ Policy as Code & Governance Tools
-
-10. **evaluate_deployment_policies** - Evaluate deployments against organizational policies
-11. **generate_compliance_report** - Generate comprehensive compliance reports
-12. **auto_fix_policy_violations** - Automatically fix policy violations where safe
-13. **list_policy_rules** - List and manage policy rules
-
-### 🎯 Policy Framework Features
-
-- **🏛️ Comprehensive Policy Engine**: 13+ built-in rules across 5 categories (Security, Compliance, Performance, Cost, Operations)
-- **🔒 Compliance Standards**: Pre-built support for SOC2, HIPAA, PCI-DSS, ISO27001 frameworks
-- **🔧 Auto-Remediation**: Intelligent fixing of security contexts, resource limits, and configuration issues  
-- **📊 Compliance Reporting**: Detailed audit reports with violation tracking and trend analysis
-- **🎨 Custom Policies**: Create organization-specific rules with JSON configuration
-- **🌍 External Configuration**: Store policies in external files for version control and environment separation
-- **📋 Policy Templates**: Ready-to-use templates for different industries and compliance requirements
-- **🔄 Real-time Evaluation**: Live policy checking during deployment operations
-- **AI-Driven Automation**: Each tool provides rich, structured responses perfect for LLM interpretation
-- **Kubernetes Native**: Built using the official Kubernetes JavaScript client
-- **Comprehensive Monitoring**: Detailed status reporting with health checks, events, and metrics  
-- **Safe Operations**: Built-in timeouts, error handling, and rollback capabilities
-- **Production Ready**: Supports multiple deployment strategies and wait-for-completion patterns
-- **🐳 Multi-Architecture**: Available for `linux/amd64` and `linux/arm64`
-- **🔒 Security First**: Regular vulnerability scanning and automated dependency updates
-
-## 🎯 Use Cases
-
-<details>
-<summary><strong>🏛️ Policy Compliance & Governance</strong></summary>
-
-**Scenario:** You need to ensure all deployments meet organizational security and compliance standards.
-
-**AI Interaction:**
 ```
-User: "Check if my web-app deployment meets our security policies"
+🔧 Can automatically fix:
+✅ Missing security contexts
+✅ Absent resource limits  
+✅ Missing health checks
+✅ Incorrect labels
+✅ Privilege escalation issues
 
-AI: "Let me evaluate your deployment against all policies..."
+⚠️ Requires manual review:
+• Privileged container configurations
+• Network policy changes
+• Database connection optimizations
 ```
 
-**MCP Tools Used:**
-- `evaluate_deployment_policies()` - Check compliance against all rules
-- `auto_fix_policy_violations()` - Fix security context and resource issues
-- `generate_compliance_report()` - Generate audit reports
+## 🐳 Docker Multi-Architecture
 
-**Policy Categories & Rules:**
+Available for both Intel and ARM architectures:
+- `linux/amd64` - Intel/AMD processors
+- `linux/arm64` - Apple Silicon (M1/M2) and ARM servers
 
-🔒 **Security Policies (5 rules)**
-- Security contexts required (non-root users, read-only filesystems)
-- Container image security (approved registries, no latest tags)
-- Network policies and service account configurations
-- Resource isolation and privilege escalation prevention
-
-🏢 **Compliance Policies (3 rules)**  
-- Required labels for governance (cost-center, team, component)
-- Data classification and handling requirements
-- Audit trail and change management compliance
-
-⚡ **Performance Policies (3 rules)**
-- Resource limits and requests defined  
-- Health checks configured (liveness/readiness probes)
-- Anti-affinity rules for high availability
-
-💰 **Cost Optimization (2 rules)**
-- Resource efficiency and right-sizing
-- Idle resource detection and recommendations
-
-🔧 **Operational Policies (3 rules)**
-- Deployment strategy validation
-- Configuration management best practices
-- Monitoring and observability requirements
-
-**Auto-Remediation Examples:**
-- **Missing security context** → Add non-root user, read-only filesystem
-- **No resource limits** → Apply recommended CPU/memory limits based on workload
-- **Missing health checks** → Add liveness/readiness probes with sensible defaults
-- **Incorrect labels** → Apply organization-standard labels automatically
-
-**Compliance Standards Supported:**
-- **HIPAA**: Healthcare data protection and privacy requirements
-- **SOC2**: Security, availability, and confidentiality controls  
-- **PCI-DSS**: Payment card industry data security standards
-- **ISO27001**: Information security management systems
-- **Custom**: Organization-specific governance frameworks
-
-</details>
-
-<details>
-<summary><strong>🚨 Performance Troubleshooting & Diagnostics</strong></summary>
-
-**Scenario:** Your application is running slow and you need to quickly diagnose the issue.
-
-**AI Interaction:**
-```
-User: "My Spring Boot app seems slow, can you investigate?"
-
-AI: "Let me check your deployment status and logs..."
+```bash
+# Docker automatically selects the right architecture
+docker pull ghcr.io/tsviz/k8s-mcp:latest
 ```
 
-**MCP Tools Used:**
-- `get_deployment_status()` - Check replica health and recent events
-- `get_pod_logs()` - Analyze startup times and error patterns
-- `scale_deployment()` - Reduce replicas to eliminate resource contention
+## 📚 Additional Resources
 
-**Common Issues Resolved:**
-- **Database lock contention** - "Waiting for changelog lock..." (20-30s delays)
-- **Slow startup times** - 80-100s → 25-35s (60-70% improvement)
-- **Resource competition** - Multiple pods competing for CPU/Memory
-- **JPA performance** - Open-in-view anti-pattern causing N+1 queries
+- **[Detailed Tool Reference](TOOLS.md)** - Complete API documentation
+- **[Policy Configuration Guide](docs/POLICY_AS_CODE.md)** - Custom policy setup
+- **[External Policy Examples](docs/EXTERNAL_POLICY_CONFIG.md)** - Organization templates
+- **[Examples Directory](examples/)** - Sample configurations and YAML files
 
-**Real Example:**
-```
-Found: Database lock contention in Liquibase migrations
-Solution: Scaled v1 from 2→1 replicas, v2 from 3→2 replicas  
-Result: Eliminated 30s startup delays, 50% faster response times
-```
+## 🤝 Contributing
 
-</details>
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
 
-<details>
-<summary><strong>🔄 Zero-Downtime Deployments</strong></summary>
+## 📄 License
 
-**Scenario:** Deploy a new version of your application without service interruption.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-**AI Interaction:**
-```
-User: "Deploy v2.1.0 of my API with zero downtime"
+---
 
-AI: "I'll deploy with rolling update strategy and monitor the rollout..."
-```
-
-**MCP Tools Used:**
-- `deploy_version()` - Deploy new image with RollingUpdate strategy
-- `get_deployment_status()` - Monitor rollout progress in real-time
-- `rollback_deployment()` - Automatic rollback if issues detected
-
-**Deployment Flow:**
-1. **Pre-deployment checks** - Verify cluster resources and current state
-2. **Rolling update** - Gradually replace pods with new version
-3. **Health monitoring** - Watch for successful pod startup and readiness
-4. **Validation** - Confirm new version is serving traffic correctly
-5. **Completion** - Report successful deployment or trigger rollback
-
-**Benefits:**
-- **Zero downtime** - Users experience no service interruption
-- **Automatic monitoring** - AI tracks deployment progress
-- **Intelligent rollback** - Automatic revert if issues detected
-- **Production safe** - Built-in safeguards and validation
-
-> ⚠️ **Production Note**: For production deployments, use this capability within your established CI/CD pipeline or during authorized emergency responses only. See [Security Disclaimers](#️-important-security--production-disclaimers) for guidelines.
-
-</details>
-
-<details>
-<summary><strong>🎛️ Feature Flag Management</strong></summary>
-
-**Scenario:** Enable/disable features in production without redeployment.
-
-**AI Interaction:**
-```
-User: "Enable the new search feature for Black Friday traffic"
-
-AI: "I'll enable the ENHANCED_SEARCH flag and monitor the rollout..."
-```
-
-**MCP Tools Used:**
-- `toggle_feature_flag()` - Update environment variables or ConfigMaps
-- `get_deployment_status()` - Monitor pod restart and health
-- `get_pod_logs()` - Verify feature activation in application logs
-
-**Feature Flag Strategies:**
-- **Environment Variables** - Fast updates with pod restart
-- **ConfigMaps** - Shared configuration across multiple services
-- **Runtime Validation** - Confirm feature activation in logs
-- **Gradual Rollout** - Enable for subset of replicas first
-
-**Use Cases:**
-- **A/B Testing** - Toggle experimental features
-- **Emergency Disable** - Quickly disable problematic features  
-- **Phased Rollouts** - Gradual feature activation
-- **Configuration Updates** - Modify app behavior without code changes
-
-</details>
-
-<details>
-<summary><strong>📈 Auto-Scaling & Load Management</strong></summary>
-
-**Scenario:** Handle traffic spikes by automatically scaling your applications.
-
-**AI Interaction:**
-```
-User: "We're expecting 10x traffic for our product launch"
-
-AI: "I'll scale your API from 3 to 15 replicas and monitor performance..."
-```
+**🚀 Transform your Kubernetes operations with AI-powered conversations in GitHub Copilot Chat!**
 
 **MCP Tools Used:**
 - `scale_deployment()` - Increase/decrease replica count
