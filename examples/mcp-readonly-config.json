@@ -1,0 +1,14 @@
+{
+  "_comment": "Default configuration - MCP server runs in read-only mode by default",
+  "mcpServers": {
+    "k8s-deployment-server": {
+      "command": "docker",
+      "args": [
+        "run", "-i", "--rm",
+        "-v", "~/.kube:/home/mcp/.kube:ro",
+        "-e", "NODE_ENV=production",
+        "ghcr.io/tsviz/k8s-mcp:latest"
+      ]
+    }
+  }
+}

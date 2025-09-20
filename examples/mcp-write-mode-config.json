@@ -1,0 +1,16 @@
+{
+  "_comment": "Write mode configuration - Enables all management tools including deployments and scaling",
+  "_warning": "Use with caution in production environments. Consider using read-only mode for safety.",
+  "mcpServers": {
+    "k8s-deployment-server": {
+      "command": "docker",
+      "args": [
+        "run", "-i", "--rm",
+        "-v", "~/.kube:/home/mcp/.kube:ro",
+        "-e", "READ_ONLY=false",
+        "-e", "NODE_ENV=development",
+        "ghcr.io/tsviz/k8s-mcp:latest"
+      ]
+    }
+  }
+}

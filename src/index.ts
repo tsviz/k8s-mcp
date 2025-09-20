@@ -25,6 +25,35 @@ import * as path from 'path';
  */
 
 async function main() {
+  // Check for read-only mode - defaults to READ_ONLY=true for safety
+  // Set READ_ONLY=false to enable write operations
+  const isReadOnly = process.env.READ_ONLY !== 'false' && process.env.READ_ONLY !== '0';
+  
+  // Helper function for read-only mode message
+  const getReadOnlyMessage = (operation: string) => ({
+    content: [{
+      type: "text" as const,
+      text: `🔒 **Write Operation Disabled**
+
+The MCP server is configured in **READ-ONLY mode** for safety.
+
+**Requested Operation**: ${operation}
+
+**To enable write operations:**
+1. Contact your MCP administrator, or
+2. Set environment variable: \`READ_ONLY=false\`
+3. Restart the MCP server
+
+**Available in Read-Only Mode:**
+- Monitoring and inspection tools
+- Policy evaluation and compliance reports  
+- Log analysis and debugging
+- Cluster status and health checks
+
+💡 **Why Read-Only?** This prevents accidental changes to your Kubernetes cluster and follows security best practices.`
+    }]
+  });
+  
   // Create MCP server instance
   const server = new McpServer({
     name: "k8s-deployment-server",
@@ -58,6 +87,15 @@ async function main() {
   }
   
   const policyEngine = new PolicyEngine(k8sService.getKubeConfig(), policyConfigPath);
+
+  // Log read-only mode status
+  if (isReadOnly) {
+    console.error('🔒 READ-ONLY MODE (Default) - Write operations disabled for safety');
+    console.error('   Set READ_ONLY=false to enable write operations');
+  } else {
+    console.error('✏️  WRITE MODE ENABLED - All management tools available');
+    console.error('   READ_ONLY=false was explicitly set');
+  }
 
   // Tool 1: Get Cluster Info
   server.registerTool(
@@ -260,6 +298,10 @@ ${status.events.map(e => `- ${e.type}: ${e.reason} - ${e.message}`).join('\n')}
       }
     },
     async ({ namespace, deployment, replicas, waitForReady = true }) => {
+      if (isReadOnly) {
+        return getReadOnlyMessage("Scale Deployment");
+      }
+      
       try {
         const result = await k8sService.scaleDeployment(namespace, deployment, replicas, waitForReady);
         
@@ -306,12 +348,16 @@ ${result.warnings.map(w => `- ${w}`).join('\n')}
       }
     },
     async ({ namespace, deployment, flagName, enabled, flagType = "env_var" }) => {
+      if (isReadOnly) {
+        return getReadOnlyMessage("Toggle Feature Flag");
+      }
+      
       try {
         const result = await k8sService.toggleFeatureFlag(namespace, deployment, flagName, enabled, flagType);
         
         return {
           content: [{
-            type: "text",
+            type: "text" as const,
             text: `🚩 Feature flag ${flagName} has been ${enabled ? 'ENABLED' : 'DISABLED'}:
 
 🎯 **Deployment**: ${deployment} (${namespace})
@@ -329,7 +375,7 @@ ${result.additionalInfo ? `
       } catch (error) {
         return {
           content: [{
-            type: "text",
+            type: "text" as const,
             text: `❌ Error toggling feature flag: ${error instanceof Error ? error.message : 'Unknown error'}`
           }],
           isError: true
@@ -352,12 +398,16 @@ ${result.additionalInfo ? `
       }
     },
     async ({ namespace, deployment, revision, waitForRollback = true }) => {
+      if (isReadOnly) {
+        return getReadOnlyMessage("Rollback Deployment");
+      }
+      
       try {
         const result = await k8sService.rollbackDeployment(namespace, deployment, revision, waitForRollback);
         
         return {
           content: [{
-            type: "text",
+            type: "text" as const,
             text: `🔄 Deployment rollback completed for ${deployment} in ${namespace}:
 
 📈 **Revision Change**: ${result.fromRevision} → ${result.toRevision}
@@ -380,7 +430,7 @@ ${result.warnings.map(w => `- ${w}`).join('\n')}
       } catch (error) {
         return {
           content: [{
-            type: "text",
+            type: "text" as const,
             text: `❌ Error rolling back deployment: ${error instanceof Error ? error.message : 'Unknown error'}`
           }],
           isError: true
@@ -404,12 +454,16 @@ ${result.warnings.map(w => `- ${w}`).join('\n')}
       }
     },
     async ({ namespace, deployment, image, strategy = "RollingUpdate", waitForDeployment = true }) => {
+      if (isReadOnly) {
+        return getReadOnlyMessage("Deploy Version");
+      }
+      
       try {
         const result = await k8sService.deployVersion(namespace, deployment, image, strategy, waitForDeployment);
         
         return {
           content: [{
-            type: "text",
+            type: "text" as const,
             text: `🚀 Deployment ${deployment} updated successfully in ${namespace}:
 
 🏷️ **Image Change**: 
@@ -441,7 +495,7 @@ ${result.warnings.map(w => `- ${w}`).join('\n')}
       } catch (error) {
         return {
           content: [{
-            type: "text",
+            type: "text" as const,
             text: `❌ Error deploying version: ${error instanceof Error ? error.message : 'Unknown error'}`
           }],
           isError: true
@@ -686,6 +740,10 @@ ${report.recommendations.map(rec => `- ${rec}`).join('\n')}
       }
     },
     async ({ namespace, deployment, dryRun = false }) => {
+      if (isReadOnly) {
+        return getReadOnlyMessage("Auto-Fix Policy Violations");
+      }
+      
       try {
         // First evaluate to get violations
         const evaluation = await policyEngine.evaluateDeployment(namespace, deployment);
@@ -694,7 +752,7 @@ ${report.recommendations.map(rec => `- ${rec}`).join('\n')}
         if (fixableViolations.length === 0) {
           return {
             content: [{
-              type: "text",
+              type: "text" as const,
               text: `ℹ️ **No Auto-Fixable Violations Found**
 
 The deployment ${deployment} in ${namespace} has no violations that can be automatically fixed.
@@ -714,7 +772,7 @@ ${evaluation.violations.length + evaluation.warnings.length > 0 ?
         if (dryRun) {
           return {
             content: [{
-              type: "text",
+              type: "text" as const,
               text: `🔍 **Dry Run: Auto-Fix Preview for ${deployment} in ${namespace}**
 
 **Fixable Violations Found**: ${fixableViolations.length}
@@ -739,7 +797,7 @@ ${v.suggestedValue ? `- **Will Set To**: ${v.suggestedValue}` : ''}
         
         return {
           content: [{
-            type: "text",
+            type: "text" as const,
             text: `🔧 **Auto-Fix Results for ${deployment} in ${namespace}**
 
 **Summary:**
@@ -768,7 +826,7 @@ ${fixResult.errors.map(error => `- ${error}`).join('\n')}
       } catch (error) {
         return {
           content: [{
-            type: "text",
+            type: "text" as const,
             text: `❌ Error auto-fixing violations: ${error instanceof Error ? error.message : 'Unknown error'}`
           }],
           isError: true
@@ -1055,7 +1113,12 @@ ${rule.metadata ? `- 📋 **Metadata**: ${Object.entries(rule.metadata).map(([k,
         const example = params.length ? `{"tool":"${name}","args":${JSON.stringify(exampleArgs)}}` : `{"tool":"${name}"}`;
         return `**${name}**\n${tool.description || ''}\n${paramDocs ? paramDocs + '\n' : ''}Example: ${example}`;
       });
-      return { content: [{ type: 'text', text: `🧰 Available Tools (${rows.length}${filter ? ` filtered by '${filter}'` : ''})\n\n${rows.join('\n\n')}` }] };
+      
+      const modeStatus = isReadOnly ? 
+        '🔒 **READ-ONLY MODE** - Write operations disabled for safety' : 
+        '✏️ **FULL MODE** - All management tools available';
+        
+      return { content: [{ type: 'text', text: `🧰 Available Tools (${rows.length}${filter ? ` filtered by '${filter}'` : ''})\n\n${modeStatus}\n\n${rows.join('\n\n')}` }] };
     }
   );
 
@@ -1085,9 +1148,16 @@ ${rule.metadata ? `- 📋 **Metadata**: ${Object.entries(rule.metadata).map(([k,
   await server.connect(transport);
   
   console.error("🚀 Kubernetes Deployment MCP Server is running...");
-  console.error("📋 Available tools: get_cluster_info, list_namespaces, list_deployments, get_deployment_status, scale_deployment, toggle_feature_flag, rollback_deployment, deploy_version, get_pod_logs, evaluate_deployment_policies, generate_compliance_report, auto_fix_policy_violations, list_policy_rules");
+  if (isReadOnly) {
+    console.error("🔒 READ-ONLY MODE (Default): Available tools include monitoring, policy evaluation, and compliance reporting");
+    console.error("📋 Write operations are disabled by default for safety - Set READ_ONLY=false to enable");
+  } else {
+    console.error("✏️  WRITE MODE: All management tools available including deployments and scaling");
+  console.error("📋 Full tool access enabled - READ_ONLY=false was explicitly set");
   console.error("🧩 Added tools: generate_policy_configuration, validate_policy_configuration, preview_policy_impact, suggest_policy_customizations");
 }
+
+} // End of main function
 
 // Handle graceful shutdown
 process.on('SIGINT', () => {

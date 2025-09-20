@@ -613,7 +613,7 @@ Copilot: Let me check your Kubernetes deployments...
 
 ### Configuration Options
 
-#### Basic Configuration (Recommended)
+#### Basic Configuration (Read-Only Default)
 ```json
 {
   "mcpServers": {
@@ -622,6 +622,23 @@ Copilot: Let me check your Kubernetes deployments...
       "args": [
         "run", "-i", "--rm",
         "-v", "~/.kube:/home/mcp/.kube:ro",
+        "ghcr.io/tsviz/k8s-mcp:latest"
+      ]
+    }
+  }
+}
+```
+
+#### Enable Write Operations
+```json
+{
+  "mcpServers": {
+    "k8s-deployment-server": {
+      "command": "docker",
+      "args": [
+        "run", "-i", "--rm",
+        "-v", "~/.kube:/home/mcp/.kube:ro",
+        "-e", "READ_ONLY=false",
         "ghcr.io/tsviz/k8s-mcp:latest"
       ]
     }
@@ -640,6 +657,23 @@ Copilot: Let me check your Kubernetes deployments...
         "-v", "~/.kube:/home/mcp/.kube:ro",
         "-v", "/path/to/policies:/app/policies:ro",
         "-e", "POLICY_CONFIG_PATH=/app/policies/production.json",
+        "ghcr.io/tsviz/k8s-mcp:latest"
+      ]
+    }
+  }
+}
+```
+
+#### Read-Only Mode (Production Safe)
+```json
+{
+  "mcpServers": {
+    "k8s-deployment-server": {
+      "command": "docker",
+      "args": [
+        "run", "-i", "--rm",
+        "-v", "~/.kube:/home/mcp/.kube:ro",
+        "-e", "READ_ONLY=true",
         "ghcr.io/tsviz/k8s-mcp:latest"
       ]
     }
@@ -1039,6 +1073,139 @@ AI: "Checking all deployments... Found 2 issues that need attention..."
 
 </details>
 
+## 🔒 Read-Only Mode (Default)
+
+**The MCP server runs in read-only mode by default for safety.** This prevents accidental modifications to your Kubernetes cluster and follows security best practices.
+
+### Configuration
+
+**Default (Read-Only Mode):**
+```json
+{
+  "mcpServers": {
+    "k8s-deployment-server": {
+      "command": "docker",
+      "args": [
+        "run", "-i", "--rm",
+        "-v", "~/.kube:/home/mcp/.kube:ro",
+        "ghcr.io/tsviz/k8s-mcp:latest"
+      ]
+    }
+  }
+}
+```
+
+**Enable Write Operations:**
+```json
+{
+  "mcpServers": {
+    "k8s-deployment-server": {
+      "command": "docker",
+      "args": [
+        "run", "-i", "--rm",
+        "-v", "~/.kube:/home/mcp/.kube:ro",
+        "-e", "READ_ONLY=false",
+        "ghcr.io/tsviz/k8s-mcp:latest"
+      ]
+    }
+  }
+}
+```
+
+### What Happens When You Try Write Operations
+
+When the server is in read-only mode (default), write operations will return a helpful message:
+
+```
+🔒 Write Operation Disabled
+
+The MCP server is configured in READ-ONLY mode for safety.
+
+Requested Operation: Scale Deployment
+
+To enable write operations:
+1. Contact your MCP administrator, or
+2. Set environment variable: READ_ONLY=false
+3. Restart the MCP server
+
+Available in Read-Only Mode:
+- Monitoring and inspection tools
+- Policy evaluation and compliance reports  
+- Log analysis and debugging
+- Cluster status and health checks
+
+💡 Why Read-Only? This prevents accidental changes to your Kubernetes cluster and follows security best practices.
+```
+
+### Available Tools by Mode
+
+✅ **Always Available (Read-Only & Write Mode):**
+- `get_cluster_info` - View cluster connection and statistics
+- `list_namespaces` - Browse namespaces and deployment counts
+- `list_deployments` - View deployment health and status
+- `get_deployment_status` - Detailed deployment diagnostics
+- `get_pod_logs` - Retrieve logs for debugging
+
+✅ **Policy & Compliance Tools (Always Available):**
+- `evaluate_deployment_policies` - Security and compliance scanning
+- `generate_compliance_report` - Audit reports for governance
+- `list_policy_rules` - View policy configurations
+- `validate_policy_configuration` - Validate policy files
+- `preview_policy_impact` - Simulate policy changes
+- `suggest_policy_customizations` - Get optimization recommendations
+
+⚠️  **Write Operations (Require READ_ONLY=false):**
+- `scale_deployment` - Scaling replicas
+- `deploy_version` - Version deployments
+- `rollback_deployment` - Rollback operations
+- `toggle_feature_flag` - Feature flag management
+- `auto_fix_policy_violations` - Automated remediation
+
+### Use Cases for Read-Only Mode (Default)
+
+🏢 **Production Environments**
+```
+You: "Show me compliance status for all production deployments"
+
+Copilot: Analyzing production namespace compliance...
+📊 Overall Compliance: 94% (156/166 checks passed)
+🔒 READ-ONLY MODE: Monitoring only, no changes applied
+```
+
+🔍 **Security Audits**
+```
+You: "Scale the API deployment to handle more traffic"
+
+Copilot: 🔒 Write Operation Disabled
+
+The MCP server is configured in READ-ONLY mode for safety.
+To enable write operations, contact your MCP administrator or set READ_ONLY=false.
+```
+
+📊 **Operational Monitoring**
+```
+You: "Which pods are consuming the most resources?"
+
+Copilot: Analyzing resource usage patterns...
+💡 Found over-provisioned deployments wasting $1,200/month
+📈 Generated optimization recommendations (read-only mode)
+```
+
+### Environment Variables
+
+| Variable | Values | Description |
+|----------|--------|-------------|
+| `READ_ONLY` | unset, `true`, `1` | **Default behavior** - Enables read-only mode, disables all write operations |
+| `READ_ONLY` | `false`, `0` | Enables write mode with all tools available |
+
+**Default Behavior:** When `READ_ONLY` is not set, the server runs in read-only mode for safety.
+
+When read-only mode is active, you'll see this confirmation in the logs:
+```
+🔒 READ-ONLY MODE (Default) - Write operations disabled for safety
+   Set READ_ONLY=false to enable write operations
+```
+
 ## ⚠️ Important Security & Production Disclaimers
 
 > **🚨 CRITICAL**: This MCP server is designed for **development, testing, and emergency scenarios** - NOT as a primary deployment tool for production environments.
@@ -1049,7 +1216,8 @@ AI: "Checking all deployments... Found 2 issues that need attention..."
 - **Development environments** - Testing and debugging applications
 - **Staging/QA clusters** - Pre-production validation and troubleshooting  
 - **Emergency response** - Critical production incidents requiring immediate intervention
-- **Monitoring & observability** - Health checks and status monitoring
+- **Monitoring & observability** - Health checks and status monitoring (use READ_ONLY=true)
+- **Security audits** - Policy compliance scanning and reporting (use READ_ONLY=true)
 - **Learning & experimentation** - Understanding Kubernetes behavior
 
 **❌ NOT RECOMMENDED for:**
@@ -1124,11 +1292,30 @@ ONLY use deployment/rollback tools in MCP server when:
 │   Development   │    │     Staging      │    │   Production    │
 │    Cluster      │    │     Cluster      │    │    Cluster      │
 ├─────────────────┤    ├──────────────────┤    ├─────────────────┤
-│ Full MCP Access │    │ Limited MCP      │    │ Read-Only MCP   │
+│ Full MCP Access │    │ Limited MCP      │    │ READ_ONLY=true  │
 │ - All tools     │    │ - No prod deploy │    │ - Monitoring    │
-│ - Unrestricted  │    │ - Scale testing  │    │ - Emergency     │
-│ - Learning      │    │ - Validation     │    │ - Audit only    │
+│ - Unrestricted  │    │ - Scale testing  │    │ - Policy scans  │
+│ - Learning      │    │ - Validation     │    │ - Compliance    │
+│ - Experimentation│   │ - READ_ONLY opt  │    │ - Audit reports │
 └─────────────────┘    └──────────────────┘    └─────────────────┘
+```
+
+**Production Configuration Example:**
+```json
+{
+  "mcpServers": {
+    "k8s-deployment-server": {
+      "command": "docker",
+      "args": [
+        "run", "-i", "--rm",
+        "-v", "~/.kube:/home/mcp/.kube:ro",
+        "-e", "READ_ONLY=true",
+        "-e", "NODE_ENV=production",
+        "ghcr.io/tsviz/k8s-mcp:v1.0.0"
+      ]
+    }
+  }
+}
 ```
 
 ### 🎯 **Summary**
@@ -1685,6 +1872,7 @@ npm run docker:compose-dev
 - `DEBUG`: Set to `1` for verbose logging
 - `KUBECONFIG`: Path to kubeconfig file (when not using in-cluster auth)
 - `POLICY_CONFIG_PATH`: Path to external policy configuration file
+- `READ_ONLY`: Default is read-only mode. Set to `false` to enable write operations
 
 ### Volume Mounts
 - `~/.kube:/home/mcp/.kube:ro` - Kubeconfig access (read-only)
