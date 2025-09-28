@@ -31,3 +31,4 @@ policy-test-*.json
 *-test-policy.*
 test-policies/
 policy-testing/
+.vscode
